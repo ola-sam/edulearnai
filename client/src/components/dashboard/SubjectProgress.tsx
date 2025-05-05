@@ -22,14 +22,15 @@ type Progress = {
   total: number;
   lastLesson: string;
   progressPercentage: number;
-  colorVariant: 'primary' | 'warning' | 'success';
+  colorVariant: 'math' | 'english' | 'science' | 'default';
+  colorClass: 'primary' | 'warning' | 'success';
 };
 
 // Icons and colors for each subject
 const subjectProps = {
-  'Mathematics': { icon: 'calculate', variant: 'primary' as const },
-  'English': { icon: 'menu_book', variant: 'warning' as const },
-  'Science': { icon: 'science', variant: 'success' as const },
+  'Mathematics': { icon: 'calculate', variant: 'math' as const, colorClass: 'primary' as const },
+  'English': { icon: 'menu_book', variant: 'english' as const, colorClass: 'warning' as const },
+  'Science': { icon: 'science', variant: 'science' as const, colorClass: 'success' as const },
 };
 
 const SubjectProgress = () => {
@@ -110,7 +111,7 @@ const SubjectProgress = () => {
         );
         
         const props = subjectProps[subject.name as keyof typeof subjectProps] || 
-          { icon: 'school', variant: 'primary' as const };
+          { icon: 'school', variant: 'default' as const, colorClass: 'primary' as const };
         
         return {
           subjectId: subject.id,
@@ -121,6 +122,7 @@ const SubjectProgress = () => {
           lastLesson,
           progressPercentage,
           colorVariant: props.variant,
+          colorClass: props.colorClass,
         };
       });
       
@@ -171,7 +173,10 @@ const SubjectProgress = () => {
                 <h4 className="font-nunito font-semibold text-lg text-gray-800">{progress.subjectName}</h4>
                 <p className="text-sm text-gray-500">Grade {user?.grade}</p>
               </div>
-              <span className={`material-icons text-${progress.colorVariant}-500`}>{progress.subjectIcon}</span>
+              <span className={`material-icons ${progress.colorVariant === 'primary' ? 'text-primary-500' : 
+                progress.colorVariant === 'warning' ? 'text-warning-500' : 
+                progress.colorVariant === 'success' ? 'text-success-500' : 
+                'text-primary-500'}`}>{progress.subjectIcon}</span>
             </div>
             <div className="mb-2">
               <div className="flex justify-between text-sm mb-1">
@@ -188,11 +193,10 @@ const SubjectProgress = () => {
                 Last lesson: {progress.lastLesson}
               </p>
               <Button
-                variant="default"
+                variant={progress.colorVariant}
                 onClick={() => handleContinueLearning(progress.subjectId)}
-                className={`w-full bg-${progress.colorVariant}-500 hover:bg-${progress.colorVariant}-600 
-                text-white font-medium flex items-center justify-center gap-2
-                transition-all transform hover:scale-[1.02] shadow-sm hover:shadow`}
+                className="w-full font-medium flex items-center justify-center gap-2
+                transition-all transform hover:scale-[1.02] shadow-sm hover:shadow"
               >
                 <span className="material-icons text-sm">play_arrow</span>
                 Continue Learning
