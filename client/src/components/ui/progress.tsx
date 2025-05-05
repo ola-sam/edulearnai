@@ -30,7 +30,10 @@ const Progress = React.forwardRef<
           "h-full w-full flex-1 transition-all",
           variantClasses[variant]
         )}
-        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+        style={{ 
+          width: `${value || 0}%`,
+          transform: 'none'
+        }}
       />
     </ProgressPrimitive.Root>
   );

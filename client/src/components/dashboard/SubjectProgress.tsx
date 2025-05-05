@@ -40,17 +40,17 @@ const SubjectProgress = () => {
   const [progressData, setProgressData] = useState<Progress[]>([]);
   const [lastLessonIds, setLastLessonIds] = useState<Record<number, number>>({});
   
-  const { data: subjects } = useQuery({
+  const { data: subjects = [] } = useQuery({
     queryKey: ['/api/subjects'],
     enabled: !!user,
   });
   
-  const { data: userProgress, isLoading } = useQuery({
+  const { data: userProgress = [], isLoading } = useQuery({
     queryKey: [`/api/users/${user?.id}/progress`],
     enabled: !!user,
   });
   
-  const { data: lessons } = useQuery({
+  const { data: lessons = [] } = useQuery({
     queryKey: ['/api/lessons', { grade: user?.grade }],
     enabled: !!user,
   });
