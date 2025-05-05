@@ -24,6 +24,11 @@
   --ring: 20 14.3% 4.1%;
   --radius: 0.5rem;
   
+  /* Subject-specific colors */
+  --math-bg: 213 76% 56%;
+  --english-bg: 45 93% 47%;
+  --science-bg: 142 72% 29%;
+  
   /* Chart colors */
   --chart-1: 217 91% 60%;
   --chart-2: 45 93% 47%;

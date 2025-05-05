@@ -202,10 +202,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users/:userId/quiz-results", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      const resultData = insertQuizResultSchema.parse({
+      
+      // Prepare quiz result data with proper types
+      const data = {
         ...req.body,
-        userId
-      });
+        userId,
+        // Ensure score and maxScore are numbers
+        score: parseInt(req.body.score) || 0,
+        maxScore: parseInt(req.body.maxScore) || 0,
+        // Convert dateTaken string to Date if needed
+        dateTaken: req.body.dateTaken instanceof Date 
+          ? req.body.dateTaken 
+          : new Date(req.body.dateTaken || Date.now())
+      };
+      
+      const resultData = insertQuizResultSchema.parse(data);
       const result = await storage.createQuizResult(resultData);
       res.status(201).json(result);
     } catch (error) {
@@ -269,10 +280,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users/:userId/downloads", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      const downloadData = insertDownloadedContentSchema.parse({
+      
+      // Ensure proper data types for downloads
+      const data = {
         ...req.body,
-        userId
-      });
+        userId,
+        // Ensure status is a string
+        status: req.body.status || 'completed',
+        // Ensure progress is a number
+        progress: parseInt(req.body.progress) || 100,
+        // Convert downloadedAt string to Date if needed
+        downloadedAt: req.body.downloadedAt instanceof Date 
+          ? req.body.downloadedAt 
+          : new Date(req.body.downloadedAt || Date.now()),
+      };
+      
+      const downloadData = insertDownloadedContentSchema.parse(data);
       const download = await storage.createDownloadedContent(downloadData);
       res.status(201).json(download);
     } catch (error) {
