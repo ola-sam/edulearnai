@@ -11,12 +11,18 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useUser } from '@/context/UserContext';
 import { getInitials } from '@/lib/utils';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
-type Message = {
-  id: string;
+type ChatMessage = {
+  id: number;
+  userId: number;
   content: string;
-  sender: 'user' | 'ai';
   timestamp: Date;
+  role: 'user' | 'assistant';
+  subject: string | null;
 };
 
 type AiChatModalProps = {
@@ -26,24 +32,80 @@ type AiChatModalProps = {
 
 const AI_INITIAL_MESSAGE = `Hi there! I'm your AI learning assistant. How can I help you today?`;
 
+const SUBJECTS = [
+  'Mathematics',
+  'English',
+  'Science',
+  'History',
+  'Geography',
+  'Art',
+  'Music',
+  'Physical Education',
+  'Computer Science',
+  'General'
+];
+
 const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
   const { user } = useUser();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [subject, setSubject] = useState<string>('General');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  // Initialize with welcome message
+  // Fetch chat history when modal is opened
+  const { data: chatHistory, isLoading: isLoadingChat } = useQuery({
+    queryKey: ['/api/users', user?.id, 'chat-history'],
+    queryFn: async () => {
+      if (!user) return [];
+      const response = await fetch(`/api/users/${user.id}/chat-history`);
+      if (!response.ok) throw new Error('Failed to fetch chat history');
+      return response.json();
+    },
+    enabled: !!user && isOpen,
+  });
+
+  // AI Chat mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: async (messageData: { userId: number; message: string; subject: string }) => {
+      const response = await apiRequest('/api/ai/tutor', {
+        method: 'POST',
+        data: messageData
+      });
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'chat-history'] });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to send message to AI tutor. Please try again.',
+        variant: 'destructive'
+      });
+      console.error('Error sending message:', error);
+    }
+  });
+
+  // Initialize with chat history or welcome message
   useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      setMessages([
-        {
-          id: 'welcome',
+    if (isOpen && chatHistory) {
+      if (chatHistory.length > 0) {
+        setMessages(chatHistory);
+      } else {
+        // No chat history, show welcome message
+        setMessages([{
+          id: 0,
+          userId: user?.id || 0,
           content: AI_INITIAL_MESSAGE,
-          sender: 'ai',
-          timestamp: new Date()
-        }
-      ]);
+          timestamp: new Date(),
+          role: 'assistant',
+          subject: null
+        }]);
+      }
     }
     
     // Focus input when opened
@@ -52,28 +114,32 @@ const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
         inputRef.current?.focus();
       }, 100);
     }
-  }, [isOpen]);
+  }, [isOpen, chatHistory, user]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || !user) return;
+    setIsLoading(true);
 
-    // Add user message
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      content: inputValue,
-      sender: 'user',
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
+    try {
+      await sendMessageMutation.mutateAsync({
+        userId: user.id,
+        message: inputValue,
+        subject
+      });
+      
+      setInputValue('');
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
+      setIsLoading(false);
+    }
 
     // Simple AI response logic (with some rules for educational context)
     setTimeout(() => {
