@@ -11,19 +11,19 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useUser } from '@/context/UserContext';
 import { getInitials } from '@/lib/utils';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import { useAiTutor } from '@/hooks/useAiTutor';
 
-type ChatMessage = {
+interface ChatMessage {
   id: number;
   userId: number;
   content: string;
   timestamp: Date;
   role: 'user' | 'assistant';
   subject: string | null;
-};
+}
 
 type AiChatModalProps = {
   isOpen: boolean;
@@ -47,74 +47,39 @@ const SUBJECTS = [
 
 const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
   const { user } = useUser();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [subject, setSubject] = useState<string>('General');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+  
+  // Use our custom AI Tutor hook
+  const {
+    chatHistory,
+    isLoadingChat,
+    isLoading,
+    sendMessage
+  } = useAiTutor({ enabled: isOpen && !!user });
 
-  // Fetch chat history when modal is opened
-  const { data: chatHistory, isLoading: isLoadingChat } = useQuery({
-    queryKey: ['/api/users', user?.id, 'chat-history'],
-    queryFn: async () => {
-      if (!user) return [];
-      const response = await fetch(`/api/users/${user.id}/chat-history`);
-      if (!response.ok) throw new Error('Failed to fetch chat history');
-      return response.json();
-    },
-    enabled: !!user && isOpen,
-  });
-
-  // AI Chat mutation
-  const sendMessageMutation = useMutation({
-    mutationFn: async (messageData: { userId: number; message: string; subject: string }) => {
-      const response = await apiRequest('/api/ai/tutor', {
-        method: 'POST',
-        data: messageData
-      });
-      return response;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users', user?.id, 'chat-history'] });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error',
-        description: 'Failed to send message to AI tutor. Please try again.',
-        variant: 'destructive'
-      });
-      console.error('Error sending message:', error);
-    }
-  });
-
-  // Initialize with chat history or welcome message
+  // Initialize welcome message if no chat history
+  const messages = chatHistory?.length > 0
+    ? chatHistory
+    : [{
+        id: 0,
+        userId: user?.id || 0,
+        content: AI_INITIAL_MESSAGE,
+        timestamp: new Date(),
+        role: 'assistant',
+        subject: null
+      }];
+  
+  // Focus input when opened
   useEffect(() => {
-    if (isOpen && chatHistory) {
-      if (chatHistory.length > 0) {
-        setMessages(chatHistory);
-      } else {
-        // No chat history, show welcome message
-        setMessages([{
-          id: 0,
-          userId: user?.id || 0,
-          content: AI_INITIAL_MESSAGE,
-          timestamp: new Date(),
-          role: 'assistant',
-          subject: null
-        }]);
-      }
-    }
-    
-    // Focus input when opened
     if (isOpen && inputRef.current) {
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
     }
-  }, [isOpen, chatHistory, user]);
+  }, [isOpen]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -125,11 +90,9 @@ const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
     e.preventDefault();
 
     if (!inputValue.trim() || !user) return;
-    setIsLoading(true);
 
     try {
-      await sendMessageMutation.mutateAsync({
-        userId: user.id,
+      await sendMessage({
         message: inputValue,
         subject
       });
@@ -137,93 +100,77 @@ const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
       setInputValue('');
     } catch (error) {
       console.error("Error sending message:", error);
-    } finally {
-      setIsLoading(false);
     }
-
-    // Simple AI response logic (with some rules for educational context)
-    setTimeout(() => {
-      let aiResponse: string;
-      
-      const lowercaseInput = inputValue.toLowerCase();
-      if (lowercaseInput.includes('multiplication') || lowercaseInput.includes('math')) {
-        aiResponse = `I can help with that! Let's start with a simple approach to learning multiplication tables. Would you like me to:
-        
-- Show you some quick tricks for multiplication?
-- Start a practice quiz with easy questions?
-- Recommend a fun game to learn multiplication?`;
-      } else if (lowercaseInput.includes('english') || lowercaseInput.includes('reading') || lowercaseInput.includes('writing')) {
-        aiResponse = `I'd be happy to help you with English! Here are some options:
-
-- Practice reading comprehension with a short story
-- Learn about grammar rules with interactive examples
-- Improve your vocabulary with word games`;
-      } else if (lowercaseInput.includes('science')) {
-        aiResponse = `Science is fascinating! I can help you with:
-
-- Understanding basic scientific concepts
-- Exploring interesting science facts
-- Learning about experiments you can do at home`;
-      } else if (lowercaseInput.includes('help')) {
-        aiResponse = `I'm here to assist with your learning journey! I can:
-
-- Answer questions about your lessons
-- Provide additional explanations for difficult concepts
-- Suggest learning activities tailored to your needs
-- Give you practice questions`;
-      } else {
-        aiResponse = `That's an interesting question! I'm programmed to help with your educational needs in Math, English, and Science. Can you tell me more about what specific topic you're studying or what kind of help you need?`;
-      }
-
-      const aiMessage: Message = {
-        id: `ai-${Date.now()}`,
-        content: aiResponse,
-        sender: 'ai',
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
-    }, 1000);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="w-full max-w-md">
-        <DialogHeader bgColor="primary">
-          <DialogTitle className="text-white">EduAI Helper</DialogTitle>
+      <DialogContent className="w-full max-w-md md:max-w-2xl">
+        <DialogHeader className="bg-primary text-white p-4 rounded-t-lg">
+          <DialogTitle>EduAI Learning Assistant</DialogTitle>
+          <div className="flex items-center mt-2">
+            <Label htmlFor="subject" className="text-white text-sm mr-2">
+              Subject:
+            </Label>
+            <Select
+              value={subject}
+              onValueChange={setSubject}
+            >
+              <SelectTrigger className="w-36 bg-white text-gray-800 text-sm h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SUBJECTS.map((subj) => (
+                  <SelectItem key={subj} value={subj}>
+                    {subj}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </DialogHeader>
         
-        <DialogBody className="h-80 overflow-y-auto p-4 bg-gray-50">
-          {messages.map(message => (
-            <div 
-              key={message.id} 
-              className={`flex mb-4 ${message.sender === 'user' ? 'justify-end' : ''}`}
-            >
-              {message.sender === 'ai' && (
-                <div className="w-8 h-8 rounded-full bg-primary-100 flex-shrink-0 flex items-center justify-center">
-                  <span className="material-icons text-primary-600 text-sm">smart_toy</span>
-                </div>
-              )}
-              
-              <div 
-                className={`${
-                  message.sender === 'ai' 
-                    ? 'ml-3 bg-white text-gray-800' 
-                    : 'mr-3 bg-primary-50 text-gray-800'
-                } p-3 rounded-lg shadow-sm max-w-[80%]`}
-              >
-                <p className="whitespace-pre-line">{message.content}</p>
-              </div>
-              
-              {message.sender === 'user' && (
-                <Avatar className="w-8 h-8 flex-shrink-0">
-                  <AvatarFallback colorVariant="primary">
-                    {user ? getInitials(user.firstName, user.lastName) : 'U'}
-                  </AvatarFallback>
-                </Avatar>
-              )}
+        <DialogBody className="h-96 overflow-y-auto p-4 bg-gray-50">
+          {isLoadingChat ? (
+            <div className="flex items-center justify-center h-full">
+              <Loader2 className="animate-spin h-8 w-8 text-primary" />
+              <span className="ml-2 text-gray-600">Loading chat history...</span>
             </div>
-          ))}
+          ) : (
+            messages.map(message => (
+              <div 
+                key={message.id} 
+                className={`flex mb-4 ${message.role === 'user' ? 'justify-end' : ''}`}
+              >
+                {message.role === 'assistant' && (
+                  <div className="w-8 h-8 rounded-full bg-primary-100 flex-shrink-0 flex items-center justify-center">
+                    <span className="material-icons text-primary-600 text-sm">smart_toy</span>
+                  </div>
+                )}
+                
+                <div 
+                  className={`${
+                    message.role === 'assistant' 
+                      ? 'ml-3 bg-white text-gray-800' 
+                      : 'mr-3 bg-primary-50 text-gray-800'
+                  } p-3 rounded-lg shadow-sm max-w-[80%]`}
+                >
+                  {message.subject && message.role === 'user' && (
+                    <div className="text-xs text-gray-500 mb-1">{message.subject}</div>
+                  )}
+                  <p className="whitespace-pre-line">{message.content}</p>
+                </div>
+                
+                {message.role === 'user' && (
+                  <Avatar className="w-8 h-8 flex-shrink-0">
+                    <AvatarFallback className="bg-primary-600 text-white">
+                      {user ? getInitials(user.firstName, user.lastName) : 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+              </div>
+            ))
+          )}
           <div ref={messagesEndRef} />
         </DialogBody>
         
@@ -232,16 +179,21 @@ const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
             ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Ask your learning assistant..."
+            placeholder="Ask me anything about your studies..."
             className="flex-1 border border-gray-300"
+            disabled={isLoading}
           />
           <Button 
             type="submit" 
             className="ml-2 p-2 rounded-full" 
             size="icon"
-            disabled={!inputValue.trim()}
+            disabled={!inputValue.trim() || isLoading}
           >
-            <span className="material-icons">send</span>
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <span className="material-icons">send</span>
+            )}
           </Button>
         </form>
       </DialogContent>
