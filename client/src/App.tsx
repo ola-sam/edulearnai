@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Lessons from "@/pages/Lessons";
+import LessonView from "@/pages/LessonView";
 import Quizzes from "@/pages/Quizzes";
 import Achievements from "@/pages/Achievements";
 import LeaderboardPage from "@/pages/LeaderboardPage";
@@ -19,6 +20,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/lessons" component={Lessons} />
+      <Route path="/lessons/:lessonId" component={LessonView} />
       <Route path="/quizzes" component={Quizzes} />
       <Route path="/achievements" component={Achievements} />
       <Route path="/leaderboard" component={LeaderboardPage} />
