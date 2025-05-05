@@ -96,6 +96,7 @@ export class MemStorage implements IStorage {
   private badges: Map<number, Badge>;
   private userBadges: Map<number, UserBadge>;
   private downloadedContent: Map<number, DownloadedContent>;
+  private chatMessages: Map<number, ChatMessage>;
   
   private currentUserId: number;
   private currentSubjectId: number;
@@ -106,6 +107,7 @@ export class MemStorage implements IStorage {
   private currentBadgeId: number;
   private currentUserBadgeId: number;
   private currentDownloadId: number;
+  private currentChatMessageId: number;
 
   constructor() {
     this.users = new Map();
@@ -117,6 +119,7 @@ export class MemStorage implements IStorage {
     this.badges = new Map();
     this.userBadges = new Map();
     this.downloadedContent = new Map();
+    this.chatMessages = new Map();
     
     this.currentUserId = 1;
     this.currentSubjectId = 1;
@@ -127,6 +130,7 @@ export class MemStorage implements IStorage {
     this.currentBadgeId = 1;
     this.currentUserBadgeId = 1;
     this.currentDownloadId = 1;
+    this.currentChatMessageId = 1;
     
     // Initialize with sample data
     this.initializeSampleData();
@@ -529,6 +533,22 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values())
       .sort((a, b) => b.points - a.points);
   }
+  
+  // Chat Message operations
+  async getChatMessages(userId: number, limit?: number): Promise<ChatMessage[]> {
+    const messages = Array.from(this.chatMessages.values())
+      .filter(message => message.userId === userId)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    return limit ? messages.slice(0, limit) : messages;
+  }
+  
+  async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
+    const id = this.currentChatMessageId++;
+    const message: ChatMessage = { ...insertMessage, id };
+    this.chatMessages.set(id, message);
+    return message;
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -742,6 +762,29 @@ export class DatabaseStorage implements IStorage {
       .from(users)
       .orderBy(desc(users.points))
       .limit(10);
+  }
+  
+  // Chat Message operations
+  async getChatMessages(userId: number, limit?: number): Promise<ChatMessage[]> {
+    const query = db
+      .select()
+      .from(chatMessages)
+      .where(eq(chatMessages.userId, userId))
+      .orderBy(desc(chatMessages.timestamp));
+      
+    if (limit) {
+      query.limit(limit);
+    }
+    
+    return query;
+  }
+  
+  async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
+    const [message] = await db
+      .insert(chatMessages)
+      .values(insertMessage)
+      .returning();
+    return message;
   }
 }
 
