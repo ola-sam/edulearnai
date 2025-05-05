@@ -264,12 +264,12 @@ const Lessons = () => {
                   
                   <div className="flex gap-2">
                     <Button 
-                      variant={getSubjectButtonVariant(subjectName)}
+                      variant={getSubjectButtonVariant(subjectName) as "math" | "english" | "science" | "default"}
                       className="flex-1"
                       onClick={() => handleStartLesson(lesson)}
                     >
                       <span className="material-icons mr-1 text-sm">play_circle</span>
-                      Start
+                      {progressPercentage > 0 ? 'Continue' : 'Start'}
                     </Button>
                     <Button 
                       variant="outline"
@@ -382,7 +382,7 @@ const Lessons = () => {
               
               <Button 
                 onClick={() => handleStartLesson(selectedLesson)}
-                variant={getSubjectButtonVariant(getSubjectName(selectedLesson.subjectId))}
+                variant={getSubjectButtonVariant(getSubjectName(selectedLesson.subjectId)) as "math" | "english" | "science" | "default"}
               >
                 <span className="material-icons mr-1 text-sm">play_circle</span>
                 {getLessonProgress(selectedLesson.id) > 0 ? 'Continue Learning' : 'Start Lesson'}

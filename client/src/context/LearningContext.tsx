@@ -46,10 +46,12 @@ export const LearningProvider = ({ children }: LearningProviderProps) => {
       
       const now = new Date();
       
+      // Make sure all required fields are properly provided
       return apiRequest('POST', `/api/users/${user.id}/progress`, {
+        userId: user.id, // explicitly include userId
         lessonId,
-        completed,
-        timeSpent,
+        completed: !!completed, // ensure boolean
+        timeSpent: timeSpent || 0, // ensure number
         lastAccessed: now
       });
     },
@@ -76,6 +78,7 @@ export const LearningProvider = ({ children }: LearningProviderProps) => {
       const now = new Date();
       
       return apiRequest('POST', `/api/users/${user.id}/downloads`, {
+        userId: user.id, // explicitly include userId
         lessonId,
         downloadedAt: now,
         status: 'completed',
@@ -123,6 +126,7 @@ export const LearningProvider = ({ children }: LearningProviderProps) => {
       const now = new Date();
       
       return apiRequest('POST', `/api/users/${user.id}/quiz-results`, {
+        userId: user.id, // explicitly include userId
         quizId,
         score,
         maxScore,
