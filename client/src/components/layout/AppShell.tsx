@@ -13,10 +13,10 @@ const AppShell = ({ children }: AppShellProps) => {
   const { user } = useAuth();
   const [location] = useLocation();
   
-  // Don't render sidebar or AI chat button on login/register page
-  const isAuthPage = location === '/auth';
+  // Don't render sidebar or AI chat button on login/register page or landing page
+  const isPublicPage = location === '/auth' || location === '/';
   
-  if (isAuthPage) {
+  if (isPublicPage) {
     return <>{children}</>;
   }
   

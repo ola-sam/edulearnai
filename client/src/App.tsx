@@ -10,6 +10,7 @@ import Achievements from "@/pages/Achievements";
 import LeaderboardPage from "@/pages/LeaderboardPage";
 import Downloads from "@/pages/Downloads";
 import AuthPage from "@/pages/auth-page";
+import LandingPage from "@/pages/LandingPage";
 import AppShell from "@/components/layout/AppShell";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -20,7 +21,8 @@ import { ProtectedRoute } from "./lib/protected-route";
 function Router() {
   return (
     <Switch>
-      <ProtectedRoute path="/" component={Dashboard} />
+      <Route path="/" component={LandingPage} />
+      <ProtectedRoute path="/dashboard" component={Dashboard} />
       <ProtectedRoute path="/lessons" component={Lessons} />
       <ProtectedRoute path="/lessons/:lessonId" component={LessonView} />
       <ProtectedRoute path="/quizzes" component={Quizzes} />
