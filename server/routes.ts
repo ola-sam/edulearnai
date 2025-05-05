@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertUserSchema, insertSubjectSchema, insertLessonSchema, insertQuizSchema, insertUserProgressSchema, insertQuizResultSchema, insertBadgeSchema, insertUserBadgeSchema, insertDownloadedContentSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateTutorResponse, type AITutorRequest } from "./services/openai";
+import { generatePersonalizedRecommendations } from "./services/recommendations";
 import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -379,59 +380,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Get user progress
     const progress = await storage.getUserProgress(userId);
     
+    // Get user quiz results
+    const quizResults = await storage.getQuizResults(userId);
+    
     // Get all lessons for the user's grade
     const lessons = await storage.getLessonsByGrade(user.grade);
     
     // Get all subjects
     const subjects = await storage.getSubjects();
     
-    // Rule-based recommendation algorithm
-    const recommendations = [];
+    // Get all quizzes
+    const quizzes = await storage.getQuizzes();
     
-    // Find in-progress lessons first
-    const inProgressLessons = lessons.filter(lesson => {
-      const lessonProgress = progress.find(p => p.lessonId === lesson.id);
-      return lessonProgress && !lessonProgress.completed;
+    // Use our personalized recommendation engine
+    const recommendations = generatePersonalizedRecommendations({
+      user,
+      lessons,
+      subjects,
+      progress,
+      quizResults,
+      quizzes
     });
     
-    // Add in-progress lessons first
-    inProgressLessons.forEach(lesson => {
-      const subject = subjects.find(s => s.id === lesson.subjectId);
-      if (subject) {
-        recommendations.push({
-          ...lesson,
-          subjectName: subject.name,
-          subjectIcon: subject.icon,
-          subjectColor: subject.color,
-          priority: 3 // High priority
-        });
-      }
-    });
-    
-    // Find lessons that haven't been started yet
-    const notStartedLessons = lessons.filter(lesson => {
-      return !progress.some(p => p.lessonId === lesson.id);
-    });
-    
-    // Add not started lessons next
-    notStartedLessons.forEach(lesson => {
-      const subject = subjects.find(s => s.id === lesson.subjectId);
-      if (subject) {
-        recommendations.push({
-          ...lesson,
-          subjectName: subject.name,
-          subjectIcon: subject.icon,
-          subjectColor: subject.color,
-          priority: 2 // Medium priority
-        });
-      }
-    });
-    
-    // Sort by priority (high to low)
-    recommendations.sort((a, b) => b.priority - a.priority);
-    
-    // Return top 3 recommendations
-    res.json(recommendations.slice(0, 3));
+    // Return top 5 recommendations
+    res.json(recommendations.slice(0, 5));
   });
 
   // AI Tutor routes

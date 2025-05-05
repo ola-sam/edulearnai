@@ -26,6 +26,7 @@ type RecommendedLesson = {
   duration: number;
   difficulty: number;
   priority: number;
+  reason: string;
   isNew?: boolean;
 };
 
@@ -142,9 +143,13 @@ const RecommendedLessons = () => {
                     <span className="material-icons text-base sm:text-lg">{lesson.subjectIcon}</span>
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-3">
+                <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 line-clamp-2">
                   {lesson.description}
                 </p>
+                <div className="mb-2 sm:mb-3 flex items-center">
+                  <span className="material-icons text-primary-500 text-xs mr-2">recommend</span>
+                  <p className="text-xs italic text-primary-600">{lesson.reason}</p>
+                </div>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
                     {difficultyStars.map((star, index) => (
