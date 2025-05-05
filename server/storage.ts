@@ -27,6 +27,8 @@ import {
   type DownloadedContent,
   type InsertDownloadedContent
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -522,4 +524,219 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async updateUserPoints(id: number, points: number): Promise<User | undefined> {
+    const existingUser = await this.getUser(id);
+    if (!existingUser) return undefined;
+
+    const newPoints = existingUser.points + points;
+    const [updatedUser] = await db
+      .update(users)
+      .set({ points: newPoints })
+      .where(eq(users.id, id))
+      .returning();
+    
+    return updatedUser;
+  }
+
+  async getSubjects(): Promise<Subject[]> {
+    return db.select().from(subjects);
+  }
+
+  async createSubject(insertSubject: InsertSubject): Promise<Subject> {
+    const [subject] = await db
+      .insert(subjects)
+      .values(insertSubject)
+      .returning();
+    return subject;
+  }
+
+  async getLessons(): Promise<Lesson[]> {
+    return db.select().from(lessons);
+  }
+
+  async getLessonsBySubject(subjectId: number): Promise<Lesson[]> {
+    return db
+      .select()
+      .from(lessons)
+      .where(eq(lessons.subjectId, subjectId));
+  }
+
+  async getLessonsByGrade(grade: number): Promise<Lesson[]> {
+    return db
+      .select()
+      .from(lessons)
+      .where(eq(lessons.grade, grade));
+  }
+
+  async getLessonById(id: number): Promise<Lesson | undefined> {
+    const [lesson] = await db.select().from(lessons).where(eq(lessons.id, id));
+    return lesson || undefined;
+  }
+
+  async createLesson(insertLesson: InsertLesson): Promise<Lesson> {
+    const [lesson] = await db
+      .insert(lessons)
+      .values(insertLesson)
+      .returning();
+    return lesson;
+  }
+
+  async getQuizzes(): Promise<Quiz[]> {
+    return db.select().from(quizzes);
+  }
+
+  async getQuizByLessonId(lessonId: number): Promise<Quiz | undefined> {
+    const [quiz] = await db
+      .select()
+      .from(quizzes)
+      .where(eq(quizzes.lessonId, lessonId));
+    return quiz || undefined;
+  }
+
+  async getQuizById(id: number): Promise<Quiz | undefined> {
+    const [quiz] = await db.select().from(quizzes).where(eq(quizzes.id, id));
+    return quiz || undefined;
+  }
+
+  async createQuiz(insertQuiz: InsertQuiz): Promise<Quiz> {
+    const [quiz] = await db
+      .insert(quizzes)
+      .values(insertQuiz)
+      .returning();
+    return quiz;
+  }
+
+  async getUserProgress(userId: number): Promise<UserProgress[]> {
+    return db
+      .select()
+      .from(userProgress)
+      .where(eq(userProgress.userId, userId));
+  }
+
+  async createOrUpdateUserProgress(insertProgress: InsertUserProgress): Promise<UserProgress> {
+    // Check if progress entry already exists
+    const [existingProgress] = await db
+      .select()
+      .from(userProgress)
+      .where(
+        and(
+          eq(userProgress.userId, insertProgress.userId),
+          eq(userProgress.lessonId, insertProgress.lessonId)
+        )
+      );
+
+    if (existingProgress) {
+      // Update existing progress
+      const [updatedProgress] = await db
+        .update(userProgress)
+        .set(insertProgress)
+        .where(eq(userProgress.id, existingProgress.id))
+        .returning();
+      return updatedProgress;
+    } else {
+      // Create new progress
+      const [progress] = await db
+        .insert(userProgress)
+        .values(insertProgress)
+        .returning();
+      return progress;
+    }
+  }
+
+  async getQuizResults(userId: number): Promise<QuizResult[]> {
+    return db
+      .select()
+      .from(quizResults)
+      .where(eq(quizResults.userId, userId));
+  }
+
+  async createQuizResult(insertResult: InsertQuizResult): Promise<QuizResult> {
+    const [result] = await db
+      .insert(quizResults)
+      .values(insertResult)
+      .returning();
+    return result;
+  }
+
+  async getBadges(): Promise<Badge[]> {
+    return db.select().from(badges);
+  }
+
+  async createBadge(insertBadge: InsertBadge): Promise<Badge> {
+    const [badge] = await db
+      .insert(badges)
+      .values(insertBadge)
+      .returning();
+    return badge;
+  }
+
+  async getUserBadges(userId: number): Promise<UserBadge[]> {
+    return db
+      .select()
+      .from(userBadges)
+      .where(eq(userBadges.userId, userId));
+  }
+
+  async createUserBadge(insertUserBadge: InsertUserBadge): Promise<UserBadge> {
+    const [userBadge] = await db
+      .insert(userBadges)
+      .values(insertUserBadge)
+      .returning();
+    return userBadge;
+  }
+
+  async getDownloadedContent(userId: number): Promise<DownloadedContent[]> {
+    return db
+      .select()
+      .from(downloadedContent)
+      .where(eq(downloadedContent.userId, userId));
+  }
+
+  async createDownloadedContent(insertContent: InsertDownloadedContent): Promise<DownloadedContent> {
+    const [content] = await db
+      .insert(downloadedContent)
+      .values(insertContent)
+      .returning();
+    return content;
+  }
+
+  async updateDownloadProgress(id: number, progress: number, status: string): Promise<DownloadedContent | undefined> {
+    const [updatedContent] = await db
+      .update(downloadedContent)
+      .set({ progress, status })
+      .where(eq(downloadedContent.id, id))
+      .returning();
+    
+    return updatedContent || undefined;
+  }
+
+  async getLeaderboard(): Promise<User[]> {
+    return db
+      .select()
+      .from(users)
+      .orderBy(desc(users.points))
+      .limit(10);
+  }
+}
+
+// Use the database storage implementation
+export const storage = new DatabaseStorage();

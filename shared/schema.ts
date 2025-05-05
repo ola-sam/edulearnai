@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -192,3 +193,84 @@ export const insertDownloadedContentSchema = createInsertSchema(downloadedConten
 
 export type InsertDownloadedContent = z.infer<typeof insertDownloadedContentSchema>;
 export type DownloadedContent = typeof downloadedContent.$inferSelect;
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  progress: many(userProgress),
+  quizResults: many(quizResults),
+  badges: many(userBadges),
+  downloads: many(downloadedContent)
+}));
+
+export const subjectsRelations = relations(subjects, ({ many }) => ({
+  lessons: many(lessons)
+}));
+
+export const lessonsRelations = relations(lessons, ({ one, many }) => ({
+  subject: one(subjects, {
+    fields: [lessons.subjectId],
+    references: [subjects.id]
+  }),
+  quiz: one(quizzes, {
+    fields: [lessons.id],
+    references: [quizzes.lessonId]
+  }),
+  progress: many(userProgress),
+  downloads: many(downloadedContent)
+}));
+
+export const quizzesRelations = relations(quizzes, ({ one, many }) => ({
+  lesson: one(lessons, {
+    fields: [quizzes.lessonId],
+    references: [lessons.id]
+  }),
+  results: many(quizResults)
+}));
+
+export const userProgressRelations = relations(userProgress, ({ one }) => ({
+  user: one(users, {
+    fields: [userProgress.userId],
+    references: [users.id]
+  }),
+  lesson: one(lessons, {
+    fields: [userProgress.lessonId],
+    references: [lessons.id]
+  })
+}));
+
+export const quizResultsRelations = relations(quizResults, ({ one }) => ({
+  user: one(users, {
+    fields: [quizResults.userId],
+    references: [users.id]
+  }),
+  quiz: one(quizzes, {
+    fields: [quizResults.quizId],
+    references: [quizzes.id]
+  })
+}));
+
+export const badgesRelations = relations(badges, ({ many }) => ({
+  userBadges: many(userBadges)
+}));
+
+export const userBadgesRelations = relations(userBadges, ({ one }) => ({
+  user: one(users, {
+    fields: [userBadges.userId],
+    references: [users.id]
+  }),
+  badge: one(badges, {
+    fields: [userBadges.badgeId],
+    references: [badges.id]
+  })
+}));
+
+export const downloadedContentRelations = relations(downloadedContent, ({ one }) => ({
+  user: one(users, {
+    fields: [downloadedContent.userId],
+    references: [users.id]
+  }),
+  lesson: one(lessons, {
+    fields: [downloadedContent.lessonId],
+    references: [lessons.id]
+  })
+}));
