@@ -20,8 +20,8 @@ const AppShell = ({ children }: AppShellProps) => {
         <div className="fixed bottom-6 right-6 z-10">
           <button
             onClick={() => setIsAiModalOpen(true)}
-            className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700 transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            style={{ backgroundColor: 'rgb(37, 99, 235)' }}
+            className="w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg hover:opacity-90 transition duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)' }}
           >
             <span className="material-icons">smart_toy</span>
           </button>
