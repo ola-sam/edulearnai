@@ -46,7 +46,7 @@ const WelcomeBanner = () => {
           </div>
           <div className="md:w-1/3 bg-primary-500 p-6 flex items-center justify-center">
             <div className="text-center">
-              <div className="font-nunito font-bold text-5xl text-white mb-2">AI</div>
+              <div className="font-nunito font-bold text-5xl text-white mb-2">JubunuAI</div>
               <p className="text-primary-100 mb-4">Your personalized learning assistant</p>
               <Button
                 variant="outline"

@@ -30,7 +30,7 @@ type AiChatModalProps = {
   onClose: () => void;
 };
 
-const AI_INITIAL_MESSAGE = `Hi there! I'm your AI learning assistant. How can I help you today?`;
+const AI_INITIAL_MESSAGE = `Hi there! I'm JubunuAI, your learning assistant. How can I help you today?`;
 
 const SUBJECTS = [
   'Mathematics',
@@ -107,7 +107,7 @@ const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
       <DialogContent className="w-full max-w-md md:max-w-2xl">
         <DialogHeader className="bg-primary text-white p-4 rounded-t-lg">
-          <DialogTitle>EduAI Learning Assistant</DialogTitle>
+          <DialogTitle>JubunuAI Learning Assistant</DialogTitle>
           <div className="flex items-center mt-2">
             <Label htmlFor="subject" className="text-white text-sm mr-2">
               Subject:
