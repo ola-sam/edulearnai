@@ -18,10 +18,10 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        // Subject specific variants
-        math: "bg-primary-600 text-white hover:bg-primary-700",
-        english: "bg-warning-600 text-white hover:bg-warning-700",
-        science: "bg-success-600 text-white hover:bg-success-700",
+        // Subject specific variants with explicit colors
+        math: "bg-blue-600 text-white hover:bg-blue-700",
+        english: "bg-amber-600 text-white hover:bg-amber-700",
+        science: "bg-green-600 text-white hover:bg-green-700",
       },
       size: {
         default: "h-10 px-4 py-2",

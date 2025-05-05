@@ -166,10 +166,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users/:userId/progress", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      const progressData = insertUserProgressSchema.parse({
+      
+      // Use the original data but parse the lastAccessed as a Date if it's a string
+      const data = {
         ...req.body,
-        userId
-      });
+        userId,
+        // Ensure completed is a boolean
+        completed: !!req.body.completed,
+        // Ensure timeSpent is a number
+        timeSpent: parseInt(req.body.timeSpent) || 0,
+        // Convert lastAccessed string to Date if needed
+        lastAccessed: req.body.lastAccessed instanceof Date 
+          ? req.body.lastAccessed 
+          : new Date(req.body.lastAccessed || Date.now())
+      };
+      
+      const progressData = insertUserProgressSchema.parse(data);
       const progress = await storage.createOrUpdateUserProgress(progressData);
       res.status(201).json(progress);
     } catch (error) {

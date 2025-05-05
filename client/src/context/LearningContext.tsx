@@ -171,17 +171,32 @@ export const LearningProvider = ({ children }: LearningProviderProps) => {
     
     setCurrentLessonId(lessonId);
     
-    // In a real app, we would navigate to the lesson content page
-    // For now, simulate starting a lesson
+    // Record progress first
     updateProgress({
       lessonId,
       completed: false,
       timeSpent: 0
-    });
-    
-    toast({
-      title: 'Lesson Started',
-      description: 'You have started the lesson. Good luck!',
+    }, {
+      onSuccess: () => {
+        // Navigate to the lesson view
+        navigate(`/lessons/${lessonId}`);
+        
+        toast({
+          title: 'Lesson Started',
+          description: 'You have started the lesson. Good luck!',
+        });
+      },
+      onError: (error) => {
+        console.error('Failed to record lesson progress:', error);
+        
+        // Still navigate to the lesson even if we couldn't save progress
+        navigate(`/lessons/${lessonId}`);
+        
+        toast({
+          title: 'Lesson Started',
+          description: 'Starting lesson, but progress tracking may not be available.',
+        });
+      }
     });
   };
   
