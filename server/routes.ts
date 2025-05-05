@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, insertSubjectSchema, insertLessonSchema, insertQuizSchema, insertUserProgressSchema, insertQuizResultSchema, insertBadgeSchema, insertUserBadgeSchema, insertDownloadedContentSchema } from "@shared/schema";
 import { z } from "zod";
+import { generateTutorResponse, type AITutorRequest } from "./services/openai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
