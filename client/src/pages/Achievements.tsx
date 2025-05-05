@@ -214,7 +214,9 @@ const Achievements = () => {
               <div>
                 <p className="text-sm text-gray-500">Completion</p>
                 <p className="font-nunito font-bold text-2xl text-success-500">
-                  {Math.round((earnedBadges.length / badgesWithProgress.length) * 100)}%
+                  {badgesWithProgress.length > 0 
+                    ? Math.round((earnedBadges.length / badgesWithProgress.length) * 100) 
+                    : 0}%
                 </p>
               </div>
             </div>
