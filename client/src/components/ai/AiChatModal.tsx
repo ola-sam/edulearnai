@@ -105,7 +105,7 @@ const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="w-[calc(100%-20px)] sm:w-full max-w-[340px] sm:max-w-md md:max-w-2xl h-[80vh] sm:h-auto max-h-[600px] p-0 flex flex-col">
+      <DialogContent className="w-[calc(100%-20px)] sm:w-full max-w-[340px] sm:max-w-md md:max-w-2xl h-[85vh] sm:h-[75vh] md:h-[600px] max-h-[600px] p-0 flex flex-col">
         <DialogHeader className="bg-primary text-white p-3 sm:p-4 rounded-t-lg shrink-0">
           <DialogTitle className="text-lg sm:text-xl">JubunuAI Learning Assistant</DialogTitle>
           <div className="flex flex-col sm:flex-row sm:items-center mt-2 gap-2">
@@ -153,12 +153,12 @@ const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
                     message.role === 'assistant' 
                       ? 'ml-2 sm:ml-3 bg-white text-gray-800' 
                       : 'mr-2 sm:mr-3 bg-primary-50 text-gray-800'
-                  } p-2 sm:p-3 rounded-lg shadow-sm max-w-[85%] sm:max-w-[80%] text-sm sm:text-base`}
+                  } p-2 sm:p-3 rounded-lg shadow-sm max-w-[85%] sm:max-w-[80%] text-xs sm:text-sm md:text-base`}
                 >
                   {message.subject && message.role === 'user' && (
                     <div className="text-xs text-gray-500 mb-1">{message.subject}</div>
                   )}
-                  <p className="whitespace-pre-line break-words">{message.content}</p>
+                  <p className="whitespace-pre-line break-words leading-tight sm:leading-normal">{message.content}</p>
                 </div>
                 
                 {message.role === 'user' && (
@@ -174,23 +174,23 @@ const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
           <div ref={messagesEndRef} />
         </DialogBody>
         
-        <form onSubmit={handleSendMessage} className="p-3 sm:p-4 border-t border-gray-200 flex items-center shrink-0">
+        <form onSubmit={handleSendMessage} className="p-2 sm:p-3 md:p-4 border-t border-gray-200 flex items-center shrink-0">
           <Input
             ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Ask me anything about your studies..."
-            className="flex-1 border border-gray-300 text-sm sm:text-base h-9 sm:h-10"
+            className="flex-1 border border-gray-300 text-xs sm:text-sm md:text-base h-8 sm:h-9 md:h-10 px-2 sm:px-3"
             disabled={isLoading}
           />
           <Button 
             type="submit" 
-            className="ml-2 p-1 sm:p-2 rounded-full" 
+            className="ml-2 rounded-full w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 p-0 flex items-center justify-center" 
             size="icon"
             disabled={!inputValue.trim() || isLoading}
           >
             {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
             ) : (
               <span className="material-icons text-sm sm:text-base">send</span>
             )}

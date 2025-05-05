@@ -22,35 +22,73 @@ const Lessons = () => {
   const [isDownloading, setIsDownloading] = useState(false);
 
   // Fetch all necessary data
-  const { data: subjects } = useQuery({
+  // Define types
+  interface Subject {
+    id: number;
+    name: string;
+    icon: string;
+    color: string;
+  }
+
+  interface Lesson {
+    id: number;
+    title: string;
+    description: string;
+    subjectId: number;
+    grade: number;
+    duration: number;
+    difficulty: number;
+    content?: string;
+    downloadSize?: number;
+  }
+
+  interface UserProgress {
+    id: number;
+    userId: number;
+    lessonId: number;
+    completed: boolean;
+    timeSpent: number;
+    lastAccessed: string;
+  }
+
+  interface DownloadedContent {
+    id: number;
+    userId: number;
+    lessonId: number;
+    downloadDate: string;
+    progress: number;
+    status: string;
+  }
+
+  const { data: subjects } = useQuery<Subject[]>({
     queryKey: ['/api/subjects'],
     enabled: !!user,
   });
 
-  const { data: lessons, isLoading: lessonsLoading } = useQuery({
+  const { data: lessons, isLoading: lessonsLoading } = useQuery<Lesson[]>({
     queryKey: ['/api/lessons'],
     enabled: !!user,
   });
 
-  const { data: userProgress } = useQuery({
+  const { data: userProgress } = useQuery<UserProgress[]>({
     queryKey: [`/api/users/${user?.id}/progress`],
     enabled: !!user,
   });
 
-  const { data: downloadedContent } = useQuery({
+  const { data: downloadedContent } = useQuery<DownloadedContent[]>({
     queryKey: [`/api/users/${user?.id}/downloads`],
     enabled: !!user,
   });
 
   // Get subject name by id
   const getSubjectName = (subjectId: number) => {
-    if (!subjects) return '';
-    const subject = subjects.find((s: any) => s.id === subjectId);
+    if (!subjects || !Array.isArray(subjects)) return '';
+    const subject = subjects.find((s) => s.id === subjectId);
     return subject?.name || '';
   };
 
   // Filter lessons based on search and filters
-  const filteredLessons = lessons?.filter((lesson: any) => {
+  const filteredLessons = Array.isArray(lessons) ? lessons.filter((lesson: Lesson) => {
     // Search term filter
     const matchesSearch = 
       lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -63,7 +101,7 @@ const Lessons = () => {
     const matchesGrade = selectedGrade === 'all' || lesson.grade.toString() === selectedGrade;
     
     return matchesSearch && matchesSubject && matchesGrade;
-  });
+  }) : [];
 
   // Handle view lesson details
   const handleViewLesson = (lesson: any) => {
@@ -90,16 +128,16 @@ const Lessons = () => {
 
   // Check if lesson is downloaded
   const isLessonDownloaded = (lessonId: number) => {
-    if (!downloadedContent) return false;
+    if (!downloadedContent || !Array.isArray(downloadedContent)) return false;
     return downloadedContent.some(
-      (item: any) => item.lessonId === lessonId && item.status === 'completed'
+      (item) => item.lessonId === lessonId && item.status === 'completed'
     );
   };
 
   // Get progress for a lesson
   const getLessonProgress = (lessonId: number) => {
-    if (!userProgress) return 0;
-    const progress = userProgress.find((p: any) => p.lessonId === lessonId);
+    if (!userProgress || !Array.isArray(userProgress)) return 0;
+    const progress = userProgress.find((p) => p.lessonId === lessonId);
     return progress ? progress.completed ? 100 : Math.min(Math.floor((progress.timeSpent / 60) / 10 * 100), 99) : 0;
   };
 
@@ -169,7 +207,7 @@ const Lessons = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Subjects</SelectItem>
-            {subjects?.map((subject: any) => (
+            {Array.isArray(subjects) && subjects.map((subject: Subject) => (
               <SelectItem key={subject.id} value={subject.id.toString()}>
                 {subject.name}
               </SelectItem>
@@ -200,7 +238,7 @@ const Lessons = () => {
             <p className="text-gray-500">No lessons found. Try adjusting your filters.</p>
           </div>
         ) : (
-          filteredLessons?.map((lesson: any) => {
+          filteredLessons.map((lesson: Lesson) => {
             const subjectName = getSubjectName(lesson.subjectId);
             const badgeVariant = getSubjectBadgeVariant(subjectName);
             const progressPercentage = getLessonProgress(lesson.id);
