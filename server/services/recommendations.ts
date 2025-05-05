@@ -197,5 +197,75 @@ export function generatePersonalizedRecommendations(
   );
 
   // Sort by priority (highest first)
-  return uniqueRecommendations.sort((a, b) => b.priority - a.priority);
+  const sortedRecommendations = uniqueRecommendations.sort((a, b) => b.priority - a.priority);
+  
+  // If no recommendations, provide fallback recommendations
+  if (sortedRecommendations.length === 0) {
+    return generateFallbackRecommendations(input);
+  }
+  
+  return sortedRecommendations;
+}
+
+/**
+ * Generate fallback recommendations when personalized recommendations are not available
+ * This ensures users always have something to learn next
+ */
+function generateFallbackRecommendations(
+  input: RecommendationInput
+): EnrichedRecommendation[] {
+  const { user, lessons, subjects, progress } = input;
+  const recommendations: EnrichedRecommendation[] = [];
+  
+  // Get lessons appropriate for user's grade
+  const gradeAppropriateLesson = lessons.filter(
+    lesson => lesson.grade === user.grade
+  );
+  
+  // 1. Recommend lessons for the user's grade that they haven't started yet
+  const notStartedLessons = gradeAppropriateLesson.filter(lesson => 
+    !progress.some(p => p.lessonId === lesson.id)
+  );
+  
+  // Sort by difficulty (easiest first)
+  const sortedNotStartedLessons = notStartedLessons.sort((a, b) => a.difficulty - b.difficulty);
+  
+  // Add fallback recommendations
+  sortedNotStartedLessons.forEach(lesson => {
+    const subject = subjects.find(s => s.id === lesson.subjectId);
+    if (subject) {
+      recommendations.push({
+        ...lesson,
+        subjectName: subject.name,
+        subjectIcon: subject.icon,
+        subjectColor: subject.color,
+        priority: 3, // Medium priority
+        reason: "Suggested for your grade level"
+      });
+    }
+  });
+  
+  // 2. If still no recommendations, recommend any lesson appropriate for the user's grade
+  if (recommendations.length === 0) {
+    gradeAppropriateLesson.forEach(lesson => {
+      const subject = subjects.find(s => s.id === lesson.subjectId);
+      if (subject) {
+        const isCompleted = progress.some(p => p.lessonId === lesson.id && p.completed);
+        
+        recommendations.push({
+          ...lesson,
+          subjectName: subject.name,
+          subjectIcon: subject.icon,
+          subjectColor: subject.color,
+          priority: isCompleted ? 1 : 2, // Lower priority if already completed
+          reason: isCompleted 
+            ? "Review this completed lesson" 
+            : "New content for your grade level"
+        });
+      }
+    });
+  }
+  
+  // Sort by priority and limit
+  return recommendations.sort((a, b) => b.priority - a.priority);
 }
