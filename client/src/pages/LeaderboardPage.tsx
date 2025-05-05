@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useUser } from '@/context/UserContext';
+import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
@@ -18,7 +18,7 @@ type LeaderboardUser = {
 };
 
 const LeaderboardPage = () => {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [gradeFilter, setGradeFilter] = useState('all');
   
   const { data: leaderboard, isLoading } = useQuery({

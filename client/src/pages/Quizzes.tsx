@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useUser } from '@/context/UserContext';
+import { useAuth } from '@/hooks/use-auth';
 import { useLearning } from '@/context/LearningContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +29,7 @@ type QuizAnswer = {
 };
 
 const Quizzes = () => {
-  const { user } = useUser();
+  const { user } = useAuth();
   const { completeQuiz } = useLearning();
   const [showQuiz, setShowQuiz] = useState(false);
   const [activeQuiz, setActiveQuiz] = useState<any>(null);

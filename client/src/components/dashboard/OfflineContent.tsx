@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useUser } from '@/context/UserContext';
+import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -24,7 +24,7 @@ type DownloadedContent = {
 };
 
 const OfflineContent = () => {
-  const { user } = useUser();
+  const { user } = useAuth();
   
   const { data: downloads, isLoading } = useQuery({
     queryKey: [`/api/users/${user?.id}/downloads`],

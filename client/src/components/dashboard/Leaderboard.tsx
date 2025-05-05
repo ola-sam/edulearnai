@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useUser } from '@/context/UserContext';
+import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ type LeaderboardEntry = {
 };
 
 const Leaderboard = () => {
-  const { user } = useUser();
+  const { user } = useAuth();
   
   const { data: leaderboard, isLoading } = useQuery<LeaderboardEntry[]>({
     queryKey: ['/api/leaderboard'],

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useUser } from '@/context/UserContext';
+import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -78,7 +78,7 @@ const BadgeCard = ({ badge }: { badge: BadgeWithProgress }) => {
 };
 
 const Achievements = () => {
-  const { user } = useUser();
+  const { user } = useAuth();
   
   const { data: badges, isLoading: badgesLoading } = useQuery({
     queryKey: ['/api/badges'],

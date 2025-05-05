@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Progress } from '@/components/ui/progress';
-import { useUser } from '@/context/UserContext';
+import { useAuth } from '@/hooks/use-auth';
 import { useLearning } from '@/context/LearningContext';
 import { calculateProgressPercentage } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -34,7 +34,7 @@ const subjectProps = {
 };
 
 const SubjectProgress = () => {
-  const { user } = useUser();
+  const { user } = useAuth();
   const { startLesson } = useLearning();
   const [_, navigate] = useLocation();
   const [progressData, setProgressData] = useState<Progress[]>([]);

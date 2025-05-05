@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@/context/UserContext';
+import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import AiChatModal from '@/components/ai/AiChatModal';
 import { useQuery } from '@tanstack/react-query';
@@ -33,7 +33,7 @@ interface UserBadge {
 }
 
 const WelcomeBanner = () => {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [weeklyGoalProgress, setWeeklyGoalProgress] = useState(0);
   const [recentBadges, setRecentBadges] = useState(0);

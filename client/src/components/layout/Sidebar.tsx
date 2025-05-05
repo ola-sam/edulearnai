@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
-import { useUser } from '@/context/UserContext';
+import { useAuth } from '@/hooks/use-auth';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { useMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
 
 type NavItemProps = {
   href: string;
@@ -29,7 +30,7 @@ const NavItem = ({ href, icon, label, active }: NavItemProps) => (
 );
 
 const Sidebar = () => {
-  const { user } = useUser();
+  const { user, logoutMutation } = useAuth();
   const [location] = useLocation();
   const isOnline = useOnlineStatus();
   const isMobile = useMobile();
@@ -142,24 +143,39 @@ const Sidebar = () => {
           ))}
         </nav>
         
-        {/* Online Status Indicator */}
+        {/* Online Status and Logout */}
         <div className="px-4 py-3 border-t border-gray-200">
-          <div className="flex items-center space-x-2">
-            <span className="flex h-3 w-3 relative">
-              {isOnline ? (
-                <>
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-success-500"></span>
-                </>
-              ) : (
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-gray-500"></span>
-              )}
-            </span>
-            <span className={`text-sm font-medium ${
-              isOnline ? 'text-success-600' : 'text-gray-600'
-            }`}>
-              {isOnline ? 'Online' : 'Offline'}
-            </span>
+          <div className="flex flex-col space-y-4">
+            <div className="flex items-center space-x-2">
+              <span className="flex h-3 w-3 relative">
+                {isOnline ? (
+                  <>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-success-500"></span>
+                  </>
+                ) : (
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-gray-500"></span>
+                )}
+              </span>
+              <span className={`text-sm font-medium ${
+                isOnline ? 'text-success-600' : 'text-gray-600'
+              }`}>
+                {isOnline ? 'Online' : 'Offline'}
+              </span>
+            </div>
+            
+            {user && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full flex items-center" 
+                onClick={() => logoutMutation.mutate()}
+                disabled={logoutMutation.isPending}
+              >
+                <span className="material-icons mr-2 text-sm">logout</span>
+                {logoutMutation.isPending ? 'Logging out...' : 'Sign out'}
+              </Button>
+            )}
           </div>
         </div>
       </div>

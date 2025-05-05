@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useUser } from '@/context/UserContext';
+import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 
 interface ChatMessage {
@@ -22,7 +22,7 @@ interface SendMessageParams {
 }
 
 export function useAiTutor({ enabled = true }: UseAiTutorProps = {}) {
-  const { user } = useUser();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);

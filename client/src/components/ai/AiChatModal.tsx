@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { useUser } from '@/context/UserContext';
+import { useAuth } from '@/hooks/use-auth';
 import { getInitials } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -46,7 +46,7 @@ const SUBJECTS = [
 ];
 
 const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [inputValue, setInputValue] = useState('');
   const [subject, setSubject] = useState<string>('General');
   const messagesEndRef = useRef<HTMLDivElement>(null);

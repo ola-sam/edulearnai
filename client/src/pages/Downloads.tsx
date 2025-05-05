@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useUser } from '@/context/UserContext';
+import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -33,7 +33,7 @@ type DownloadedContent = {
 };
 
 const Downloads = () => {
-  const { user } = useUser();
+  const { user } = useAuth();
   const { downloadLesson } = useLearning();
   const isOnline = useOnlineStatus();
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);

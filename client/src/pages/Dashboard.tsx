@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useUser } from '@/context/UserContext';
+import { useAuth } from '@/hooks/use-auth';
 import { queryClient } from '@/lib/queryClient';
 import WelcomeBanner from '@/components/dashboard/WelcomeBanner';
 import SubjectProgress from '@/components/dashboard/SubjectProgress';
@@ -10,7 +10,7 @@ import OfflineContent from '@/components/dashboard/OfflineContent';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 const Dashboard = () => {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [lastVisit, setLastVisit] = useLocalStorage<string>('lastDashboardVisit', '');
   
   // Update last visit time for analytics

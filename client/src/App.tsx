@@ -9,22 +9,25 @@ import Quizzes from "@/pages/Quizzes";
 import Achievements from "@/pages/Achievements";
 import LeaderboardPage from "@/pages/LeaderboardPage";
 import Downloads from "@/pages/Downloads";
+import AuthPage from "@/pages/auth-page";
 import AppShell from "@/components/layout/AppShell";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
-import { UserProvider } from "./context/UserContext";
+import { AuthProvider } from "./hooks/use-auth";
 import { LearningProvider } from "./context/LearningContext";
+import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/lessons" component={Lessons} />
-      <Route path="/lessons/:lessonId" component={LessonView} />
-      <Route path="/quizzes" component={Quizzes} />
-      <Route path="/achievements" component={Achievements} />
-      <Route path="/leaderboard" component={LeaderboardPage} />
-      <Route path="/downloads" component={Downloads} />
+      <ProtectedRoute path="/" component={Dashboard} />
+      <ProtectedRoute path="/lessons" component={Lessons} />
+      <ProtectedRoute path="/lessons/:lessonId" component={LessonView} />
+      <ProtectedRoute path="/quizzes" component={Quizzes} />
+      <ProtectedRoute path="/achievements" component={Achievements} />
+      <ProtectedRoute path="/leaderboard" component={LeaderboardPage} />
+      <ProtectedRoute path="/downloads" component={Downloads} />
+      <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -33,7 +36,7 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <UserProvider>
+      <AuthProvider>
         <LearningProvider>
           <TooltipProvider>
             <Toaster />
@@ -42,7 +45,7 @@ function App() {
             </AppShell>
           </TooltipProvider>
         </LearningProvider>
-      </UserProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
