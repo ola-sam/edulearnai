@@ -50,11 +50,6 @@ const AuthPage = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
 
-  // Redirect if already logged in
-  if (user) {
-    return <Redirect to="/" />;
-  }
-
   // Login form
   const loginForm = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -76,6 +71,11 @@ const AuthPage = () => {
       confirmPassword: '',
     },
   });
+  
+  // Redirect if already logged in - AFTER all hook calls!
+  if (user) {
+    return <Redirect to="/" />;
+  }
 
   // Handle login submission
   const onLoginSubmit = (values: LoginValues) => {
