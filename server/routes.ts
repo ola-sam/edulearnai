@@ -379,18 +379,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Get user progress
     const progress = await storage.getUserProgress(userId);
+    console.log(`User ${userId} has ${progress.length} progress records`);
     
     // Get user quiz results
     const quizResults = await storage.getQuizResults(userId);
+    console.log(`User ${userId} has ${quizResults.length} quiz results`);
     
     // Get all lessons for the user's grade
     const lessons = await storage.getLessonsByGrade(user.grade);
+    console.log(`Found ${lessons.length} lessons for grade ${user.grade}`);
     
     // Get all subjects
     const subjects = await storage.getSubjects();
+    console.log(`Found ${subjects.length} subjects`);
     
     // Get all quizzes
     const quizzes = await storage.getQuizzes();
+    console.log(`Found ${quizzes.length} quizzes`);
     
     // Use our personalized recommendation engine
     const recommendations = generatePersonalizedRecommendations({
@@ -401,6 +406,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       quizResults,
       quizzes
     });
+    
+    console.log(`Generated ${recommendations.length} recommendations`);
+    
+    // Always return at least 3 recommendations
+    // If we have no recommendations at all, use basic grade-appropriate lessons
+    if (recommendations.length === 0) {
+      // Create some basic recommendations based on available lessons
+      const basicRecommendations = lessons.slice(0, 5).map(lesson => {
+        const subject = subjects.find(s => s.id === lesson.subjectId);
+        return {
+          ...lesson,
+          subjectName: subject?.name || 'General',
+          subjectIcon: subject?.icon || 'school',
+          subjectColor: subject?.color || 'primary',
+          priority: 1,
+          reason: 'Recommended for your grade level'
+        };
+      });
+      console.log(`Added ${basicRecommendations.length} basic recommendations`);
+      return res.json(basicRecommendations);
+    }
     
     // Return top 5 recommendations
     res.json(recommendations.slice(0, 5));
