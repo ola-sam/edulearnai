@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { Progress } from '@/components/ui/progress';
 import { useUser } from '@/context/UserContext';
+import { useLearning } from '@/context/LearningContext';
 import { calculateProgressPercentage } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -32,7 +34,10 @@ const subjectProps = {
 
 const SubjectProgress = () => {
   const { user } = useUser();
+  const { startLesson } = useLearning();
+  const [_, navigate] = useLocation();
   const [progressData, setProgressData] = useState<Progress[]>([]);
+  const [lastLessonIds, setLastLessonIds] = useState<Record<number, number>>({});
   
   const { data: subjects } = useQuery({
     queryKey: ['/api/subjects'],
@@ -49,6 +54,21 @@ const SubjectProgress = () => {
     enabled: !!user,
   });
   
+  // Handle continue learning button click
+  const handleContinueLearning = (subjectId: number) => {
+    const lessonId = lastLessonIds[subjectId];
+    
+    if (lessonId) {
+      // Start the lesson via learning context
+      startLesson(lessonId);
+      // Navigate to the lessons page
+      navigate('/lessons');
+    } else {
+      // If no lesson has been started yet, just navigate to lessons filtered by subject
+      navigate(`/lessons?subject=${subjectId}`);
+    }
+  };
+
   useEffect(() => {
     if (subjects && lessons && userProgress) {
       const progress: Progress[] = subjects.map((subject: Subject) => {
@@ -75,6 +95,14 @@ const SubjectProgress = () => {
         const lastLesson = lastAccessedLessonId 
           ? lessons.find((l: any) => l.id === lastAccessedLessonId)?.title || 'No lessons yet'
           : 'No lessons yet';
+        
+        // Store the last lesson ID to be used in the continue button
+        if (lastAccessedLessonId) {
+          setLastLessonIds(prev => ({
+            ...prev,
+            [subject.id]: lastAccessedLessonId
+          }));
+        }
         
         const progressPercentage = calculateProgressPercentage(
           completedLessons.length,
@@ -155,15 +183,19 @@ const SubjectProgress = () => {
                 variant={progress.colorVariant} 
               />
             </div>
-            <div className="mt-4 flex justify-between items-center">
-              <span className="text-xs text-gray-500">
+            <div className="mt-4">
+              <p className="text-xs text-gray-500 mb-3">
                 Last lesson: {progress.lastLesson}
-              </span>
+              </p>
               <Button
-                variant="link"
-                className={`text-${progress.colorVariant}-600 text-sm font-medium hover:text-${progress.colorVariant}-700`}
+                variant="default"
+                onClick={() => handleContinueLearning(progress.subjectId)}
+                className={`w-full bg-${progress.colorVariant}-500 hover:bg-${progress.colorVariant}-600 
+                text-white font-medium flex items-center justify-center gap-2
+                transition-all transform hover:scale-[1.02] shadow-sm hover:shadow`}
               >
-                Continue
+                <span className="material-icons text-sm">play_arrow</span>
+                Continue Learning
               </Button>
             </div>
           </div>
