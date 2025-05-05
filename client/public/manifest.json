@@ -1,6 +1,6 @@
 {
-  "name": "EduAI - Personalized Learning",
-  "short_name": "EduAI",
+  "name": "JubunuAI - Personalized Learning",
+  "short_name": "JubunuAI",
   "description": "Interactive educational app with AI-powered personalized learning for K-12 students",
   "start_url": "/",
   "display": "standalone",

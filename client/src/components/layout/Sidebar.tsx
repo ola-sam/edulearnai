@@ -56,8 +56,8 @@ const Sidebar = () => {
   const MobileNav = () => (
     <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center">
       <div className="flex items-center space-x-2">
-        <span className="material-icons text-primary-500">school</span>
-        <h1 className="font-nunito font-bold text-xl text-primary-700">EduAI</h1>
+        <span className="material-icons text-purple-500">school</span>
+        <h1 className="font-nunito font-bold text-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-transparent bg-clip-text">JubunuAI</h1>
       </div>
       <button
         onClick={toggleSidebar}
@@ -78,8 +78,8 @@ const Sidebar = () => {
         } md:flex flex-col w-64 bg-white border-r border-gray-200 h-full overflow-y-auto`}
       >
         <div className="p-4 flex items-center space-x-2">
-          <span className="material-icons text-primary-500 text-3xl">school</span>
-          <h1 className="font-nunito font-bold text-2xl text-primary-700">EduAI</h1>
+          <span className="material-icons text-purple-500 text-3xl">school</span>
+          <h1 className="font-nunito font-bold text-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-transparent bg-clip-text">JubunuAI</h1>
         </div>
         
         {/* User Profile */}
