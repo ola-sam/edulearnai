@@ -385,7 +385,7 @@ const Lessons = () => {
                 variant={getSubjectButtonVariant(getSubjectName(selectedLesson.subjectId))}
               >
                 <span className="material-icons mr-1 text-sm">play_circle</span>
-                Start Lesson
+                {getLessonProgress(selectedLesson.id) > 0 ? 'Continue Learning' : 'Start Lesson'}
               </Button>
             </DialogFooter>
           </DialogContent>
