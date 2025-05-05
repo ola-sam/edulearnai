@@ -173,9 +173,9 @@ const SubjectProgress = () => {
                 <h4 className="font-nunito font-semibold text-lg text-gray-800">{progress.subjectName}</h4>
                 <p className="text-sm text-gray-500">Grade {user?.grade}</p>
               </div>
-              <span className={`material-icons ${progress.colorVariant === 'primary' ? 'text-primary-500' : 
-                progress.colorVariant === 'warning' ? 'text-warning-500' : 
-                progress.colorVariant === 'success' ? 'text-success-500' : 
+              <span className={`material-icons ${progress.colorClass === 'primary' ? 'text-primary-500' : 
+                progress.colorClass === 'warning' ? 'text-warning-500' : 
+                progress.colorClass === 'success' ? 'text-success-500' : 
                 'text-primary-500'}`}>{progress.subjectIcon}</span>
             </div>
             <div className="mb-2">
@@ -185,7 +185,7 @@ const SubjectProgress = () => {
               </div>
               <Progress 
                 value={progress.progressPercentage} 
-                variant={progress.colorVariant} 
+                variant={progress.colorClass} 
               />
             </div>
             <div className="mt-4">
