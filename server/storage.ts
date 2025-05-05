@@ -8,6 +8,7 @@ import {
   badges,
   userBadges,
   downloadedContent,
+  chatMessages,
   type User,
   type InsertUser,
   type Subject,
@@ -25,7 +26,9 @@ import {
   type UserBadge,
   type InsertUserBadge,
   type DownloadedContent,
-  type InsertDownloadedContent
+  type InsertDownloadedContent,
+  type ChatMessage,
+  type InsertChatMessage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -77,6 +80,10 @@ export interface IStorage {
   
   // Leaderboard operations
   getLeaderboard(): Promise<User[]>;
+  
+  // Chat Message operations
+  getChatMessages(userId: number, limit?: number): Promise<ChatMessage[]>;
+  createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
 }
 
 export class MemStorage implements IStorage {

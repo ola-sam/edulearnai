@@ -194,6 +194,27 @@ export const insertDownloadedContentSchema = createInsertSchema(downloadedConten
 export type InsertDownloadedContent = z.infer<typeof insertDownloadedContentSchema>;
 export type DownloadedContent = typeof downloadedContent.$inferSelect;
 
+// Chat Messages
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  content: text("content").notNull(),
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+  role: text("role").notNull(), // "user" or "assistant"
+  subject: text("subject"),      // Optional subject context
+});
+
+export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
+  userId: true,
+  content: true,
+  timestamp: true,
+  role: true,
+  subject: true,
+});
+
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   progress: many(userProgress),
@@ -276,40 +297,9 @@ export const downloadedContentRelations = relations(downloadedContent, ({ one })
   })
 }));
 
-// Chat Messages
-export const chatMessages = pgTable("chat_messages", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  content: text("content").notNull(),
-  timestamp: timestamp("timestamp").notNull().defaultNow(),
-  role: text("role").notNull(), // "user" or "assistant"
-  subject: text("subject"),      // Optional subject context
-});
-
-export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
-  userId: true,
-  content: true,
-  timestamp: true,
-  role: true,
-  subject: true,
-});
-
-export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
-export type ChatMessage = typeof chatMessages.$inferSelect;
-
-// Relations for chat messages
 export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
   user: one(users, {
     fields: [chatMessages.userId],
     references: [users.id]
   })
-}));
-
-// Add chat messages to user relations
-export const usersRelationsWithChat = relations(users, ({ many }) => ({
-  progress: many(userProgress),
-  quizResults: many(quizResults),
-  badges: many(userBadges),
-  downloads: many(downloadedContent),
-  chatMessages: many(chatMessages)
 }));
