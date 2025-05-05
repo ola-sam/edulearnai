@@ -64,6 +64,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(subjects);
   });
   
+  app.get("/api/subjects/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid subject ID" });
+    }
+    
+    const subjects = await storage.getSubjects();
+    const subject = subjects.find(s => s.id === id);
+    
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+    
+    res.json(subject);
+  });
+  
   app.post("/api/subjects", async (req, res) => {
     try {
       const subjectData = insertSubjectSchema.parse(req.body);
