@@ -44,7 +44,7 @@ export const LearningProvider = ({ children }: LearningProviderProps) => {
     }) => {
       if (!user) throw new Error('User not authenticated');
       
-      const now = new Date().toISOString();
+      const now = new Date();
       
       return apiRequest('POST', `/api/users/${user.id}/progress`, {
         lessonId,
@@ -72,7 +72,8 @@ export const LearningProvider = ({ children }: LearningProviderProps) => {
     mutationFn: async (lessonId: number) => {
       if (!user) throw new Error('User not authenticated');
       
-      const now = new Date().toISOString();
+      // Format date correctly for PostgreSQL timestamp
+      const now = new Date();
       
       return apiRequest('POST', `/api/users/${user.id}/downloads`, {
         lessonId,
@@ -119,7 +120,7 @@ export const LearningProvider = ({ children }: LearningProviderProps) => {
     }) => {
       if (!user) throw new Error('User not authenticated');
       
-      const now = new Date().toISOString();
+      const now = new Date();
       
       return apiRequest('POST', `/api/users/${user.id}/quiz-results`, {
         quizId,
