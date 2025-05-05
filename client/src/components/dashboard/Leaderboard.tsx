@@ -15,7 +15,7 @@ type LeaderboardEntry = {
 const Leaderboard = () => {
   const { user } = useUser();
   
-  const { data: leaderboard, isLoading } = useQuery({
+  const { data: leaderboard, isLoading } = useQuery<LeaderboardEntry[]>({
     queryKey: ['/api/leaderboard'],
     enabled: !!user,
   });
@@ -47,9 +47,9 @@ const Leaderboard = () => {
   
   return (
     <Card>
-      <CardContent className="pt-6">
-        <h3 className="font-nunito font-semibold text-xl text-gray-800 mb-4">Class Leaderboard</h3>
-        <div className="space-y-4">
+      <CardContent className="p-4 sm:pt-6">
+        <h3 className="font-nunito font-semibold text-lg sm:text-xl text-gray-800 mb-3 sm:mb-4">Class Leaderboard</h3>
+        <div className="space-y-3 sm:space-y-4">
           {leaderboard?.slice(0, 3).map((entry: LeaderboardEntry, index: number) => {
             const isCurrentUser = entry.id === user?.id;
             const progressPercentage = Math.round((entry.points / topScore) * 100);
@@ -57,35 +57,35 @@ const Leaderboard = () => {
             return (
               <div 
                 key={entry.id} 
-                className={`flex items-center space-x-3 p-2 rounded-lg ${
+                className={`flex items-center space-x-2 sm:space-x-3 p-2 rounded-lg ${
                   isCurrentUser ? 'bg-primary-50' : ''
                 }`}
               >
                 <div 
-                  className={`w-8 h-8 ${
+                  className={`w-6 h-6 sm:w-8 sm:h-8 ${
                     index === 0 
                       ? 'bg-primary-500' 
                       : 'bg-gray-200'
                   } rounded-full flex items-center justify-center ${
                     index === 0 ? 'text-white' : 'text-gray-700'
-                  } font-nunito font-bold`}
+                  } font-nunito font-bold text-xs sm:text-sm`}
                 >
                   {index + 1}
                 </div>
-                <div className="flex-1">
-                  <p className="font-medium text-gray-800">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-800 text-xs sm:text-sm truncate">
                     {isCurrentUser ? `${entry.displayName} (You)` : entry.displayName}
                   </p>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                  <div className="w-full bg-gray-200 rounded-full h-1 sm:h-1.5 mt-1">
                     <div 
                       className={`${
                         isCurrentUser ? 'bg-primary-600' : 'bg-gray-500'
-                      } h-1.5 rounded-full`} 
+                      } h-1 sm:h-1.5 rounded-full`} 
                       style={{ width: `${progressPercentage}%` }}
                     ></div>
                   </div>
                 </div>
-                <div className={`font-semibold ${
+                <div className={`font-semibold text-xs sm:text-sm ${
                   isCurrentUser ? 'text-primary-700' : 'text-gray-700'
                 }`}>
                   {entry.points}
@@ -96,7 +96,7 @@ const Leaderboard = () => {
           
           <Button 
             variant="link" 
-            className="mt-2 w-full text-center py-2 text-sm text-primary-600 hover:text-primary-700 font-medium"
+            className="mt-2 w-full text-center py-1 sm:py-2 text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium"
           >
             View Full Leaderboard
           </Button>
