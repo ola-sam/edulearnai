@@ -766,14 +766,20 @@ export class DatabaseStorage implements IStorage {
   
   // Chat Message operations
   async getChatMessages(userId: number, limit?: number): Promise<ChatMessage[]> {
-    const query = db
+    // Use a simpler query structure that doesn't rely on method chaining with .limit()
+    let query = db
       .select()
       .from(chatMessages)
       .where(eq(chatMessages.userId, userId))
       .orderBy(desc(chatMessages.timestamp));
       
     if (limit) {
-      query.limit(limit);
+      return db
+        .select()
+        .from(chatMessages)
+        .where(eq(chatMessages.userId, userId))
+        .orderBy(desc(chatMessages.timestamp))
+        .limit(limit);
     }
     
     return query;

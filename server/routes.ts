@@ -424,6 +424,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         context
       });
       
+      // Store user message
+      await storage.createChatMessage({
+        userId,
+        content: message,
+        timestamp: new Date(),
+        role: "user",
+        subject: subject
+      });
+      
+      // Store AI response
+      await storage.createChatMessage({
+        userId,
+        content: aiResponse.content,
+        timestamp: new Date(),
+        role: "assistant",
+        subject: subject
+      });
+      
       res.json(aiResponse);
     } catch (error) {
       console.error("Error in AI tutor route:", error);
@@ -436,9 +454,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Chat history routes for AI tutor
   app.get("/api/users/:userId/chat-history", async (req, res) => {
-    // This would be implemented with a proper chat history storage
-    // For now, we just return an empty array
-    res.json([]);
+    try {
+      const userId = parseInt(req.params.userId);
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      
+      const messages = await storage.getChatMessages(userId, limit);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching chat history:", error);
+      res.status(500).json({ message: "Failed to fetch chat history" });
+    }
   });
 
   const httpServer = createServer(app);
