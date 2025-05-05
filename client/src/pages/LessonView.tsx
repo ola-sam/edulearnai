@@ -121,7 +121,12 @@ const LessonView = () => {
     <div className="p-6">
       <Card>
         <CardHeader 
-          className={`bg-${getSubjectBadgeVariant(subject?.name)}-500 text-white`}
+          className={
+            subject?.name === 'Mathematics' ? 'bg-blue-600 text-white' : 
+            subject?.name === 'English' ? 'bg-yellow-500 text-white' : 
+            subject?.name === 'Science' ? 'bg-green-600 text-white' :
+            'bg-primary text-white'
+          }
         >
           <div className="flex items-center justify-between">
             <CardTitle>{lesson.title}</CardTitle>
