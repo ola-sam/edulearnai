@@ -43,14 +43,14 @@ const Leaderboard = () => {
     );
   }
   
-  const topScore = leaderboard?.[0]?.points || 100;
+  const topScore = Array.isArray(leaderboard) && leaderboard.length > 0 ? leaderboard[0].points : 100;
   
   return (
     <Card>
       <CardContent className="p-4 sm:pt-6">
         <h3 className="font-nunito font-semibold text-lg sm:text-xl text-gray-800 mb-3 sm:mb-4">Class Leaderboard</h3>
         <div className="space-y-3 sm:space-y-4">
-          {leaderboard?.slice(0, 3).map((entry: LeaderboardEntry, index: number) => {
+          {Array.isArray(leaderboard) && leaderboard.slice(0, 3).map((entry: LeaderboardEntry, index: number) => {
             const isCurrentUser = entry.id === user?.id;
             const progressPercentage = Math.round((entry.points / topScore) * 100);
             

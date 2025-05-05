@@ -211,32 +211,32 @@ const Lessons = () => {
                 key={lesson.id} 
                 colorTop={badgeVariant === 'math' ? 'primary' : badgeVariant === 'english' ? 'warning' : 'success'}
               >
-                <CardContent>
-                  <div className="flex justify-between items-start mb-4">
+                <CardContent className="p-3 sm:p-6">
+                  <div className="flex justify-between items-start mb-3 sm:mb-4">
                     <div>
-                      <Badge variant={badgeVariant as any}>
+                      <Badge variant={badgeVariant as any} className="text-xs sm:text-sm">
                         {subjectName}
                       </Badge>
-                      <h4 className="font-nunito font-semibold text-lg text-gray-800 mt-2">
+                      <h4 className="font-nunito font-semibold text-base sm:text-lg text-gray-800 mt-1 sm:mt-2">
                         {lesson.title}
                       </h4>
                     </div>
-                    <span className={`bg-${badgeVariant}-50 p-2 rounded-full text-${badgeVariant}-700`}>
-                      <span className="material-icons">
+                    <span className={`bg-${badgeVariant}-50 p-1.5 sm:p-2 rounded-full text-${badgeVariant}-700 ml-2 flex-shrink-0`}>
+                      <span className="material-icons text-base sm:text-lg">
                         {badgeVariant === 'math' ? 'calculate' : 
                          badgeVariant === 'english' ? 'menu_book' : 'science'}
                       </span>
                     </span>
                   </div>
                   
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                  <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-2">
                     {lesson.description}
                   </p>
                   
                   {/* Progress bar */}
                   {progressPercentage > 0 && (
-                    <div className="mb-4">
-                      <div className="flex justify-between text-sm mb-1">
+                    <div className="mb-3 sm:mb-4">
+                      <div className="flex justify-between text-xs sm:text-sm mb-1">
                         <span>Progress</span>
                         <span className="font-medium">{progressPercentage}%</span>
                       </div>
@@ -248,7 +248,7 @@ const Lessons = () => {
                     </div>
                   )}
                   
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-3 sm:mb-4">
                     <div className="flex items-center">
                       <span className="material-icons text-xs mr-1 text-gray-500">schedule</span>
                       <span className="text-xs text-gray-500">{lesson.duration} min</span>
@@ -265,17 +265,18 @@ const Lessons = () => {
                   <div className="flex gap-2">
                     <Button 
                       variant={getSubjectButtonVariant(subjectName) as "math" | "english" | "science" | "default"}
-                      className="flex-1"
+                      className="flex-1 text-xs sm:text-sm py-1.5 sm:py-2"
                       onClick={() => handleStartLesson(lesson)}
                     >
-                      <span className="material-icons mr-1 text-sm">play_circle</span>
+                      <span className="material-icons text-xs sm:text-sm mr-1">play_circle</span>
                       {progressPercentage > 0 ? 'Continue' : 'Start'}
                     </Button>
                     <Button 
                       variant="outline"
+                      className="px-2 sm:px-3"
                       onClick={() => handleViewLesson(lesson)}
                     >
-                      <span className="material-icons text-sm">info</span>
+                      <span className="material-icons text-xs sm:text-sm">info</span>
                     </Button>
                   </div>
                 </CardContent>
