@@ -54,17 +54,26 @@ const Sidebar = () => {
 
   // Mobile navigation bar
   const MobileNav = () => (
-    <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center">
+    <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center sticky top-0 z-30 shadow-sm">
       <div className="flex items-center space-x-2">
         <span className="material-icons text-purple-500">school</span>
         <h1 className="font-nunito font-bold text-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-transparent bg-clip-text">JubunuAI</h1>
       </div>
-      <button
-        onClick={toggleSidebar}
-        className="text-gray-500 focus:outline-none"
-      >
-        <span className="material-icons">menu</span>
-      </button>
+      <div className="flex items-center space-x-3">
+        {user && (
+          <Avatar className="w-8 h-8 mr-1">
+            <AvatarFallback colorVariant="primary" className="text-sm">
+              {getInitials(user.firstName, user.lastName)}
+            </AvatarFallback>
+          </Avatar>
+        )}
+        <button
+          onClick={toggleSidebar}
+          className="text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 p-1 rounded-md"
+        >
+          <span className="material-icons">{isSidebarOpen ? 'close' : 'menu'}</span>
+        </button>
+      </div>
     </div>
   );
 
@@ -74,9 +83,28 @@ const Sidebar = () => {
       
       <div
         className={`${
-          isSidebarOpen ? 'block' : 'hidden'
-        } md:flex flex-col w-64 bg-white border-r border-gray-200 h-full overflow-y-auto`}
+          isSidebarOpen ? 'block fixed inset-0 z-20' : 'hidden'
+        } md:static md:block md:z-0 md:flex flex-col md:w-64 bg-white border-r border-gray-200 h-full overflow-y-auto`}
       >
+        {/* Mobile overlay */}
+        {isMobile && isSidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 md:hidden -z-10"
+            onClick={toggleSidebar}
+          ></div>
+        )}
+        
+        {/* Mobile close button */}
+        {isMobile && (
+          <div className="flex justify-end p-2 md:hidden">
+            <button
+              onClick={toggleSidebar}
+              className="text-gray-500 focus:outline-none"
+            >
+              <span className="material-icons">close</span>
+            </button>
+          </div>
+        )}
         <div className="p-4 flex items-center space-x-2">
           <span className="material-icons text-purple-500 text-3xl">school</span>
           <h1 className="font-nunito font-bold text-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-transparent bg-clip-text">JubunuAI</h1>

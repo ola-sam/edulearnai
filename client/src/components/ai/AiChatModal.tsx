@@ -105,18 +105,18 @@ const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="w-full max-w-md md:max-w-2xl">
-        <DialogHeader className="bg-primary text-white p-4 rounded-t-lg">
-          <DialogTitle>JubunuAI Learning Assistant</DialogTitle>
-          <div className="flex items-center mt-2">
-            <Label htmlFor="subject" className="text-white text-sm mr-2">
+      <DialogContent className="w-[calc(100%-20px)] sm:w-full max-w-[340px] sm:max-w-md md:max-w-2xl h-[80vh] sm:h-auto max-h-[600px] p-0 flex flex-col">
+        <DialogHeader className="bg-primary text-white p-3 sm:p-4 rounded-t-lg shrink-0">
+          <DialogTitle className="text-lg sm:text-xl">JubunuAI Learning Assistant</DialogTitle>
+          <div className="flex flex-col sm:flex-row sm:items-center mt-2 gap-2">
+            <Label htmlFor="subject" className="text-white text-xs sm:text-sm sm:mr-2">
               Subject:
             </Label>
             <Select
               value={subject}
               onValueChange={setSubject}
             >
-              <SelectTrigger className="w-36 bg-white text-gray-800 text-sm h-8">
+              <SelectTrigger className="w-full sm:w-36 bg-white text-gray-800 text-xs sm:text-sm h-8">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -130,40 +130,40 @@ const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
           </div>
         </DialogHeader>
         
-        <DialogBody className="h-96 overflow-y-auto p-4 bg-gray-50">
+        <DialogBody className="flex-1 overflow-y-auto p-3 sm:p-4 bg-gray-50">
           {isLoadingChat ? (
             <div className="flex items-center justify-center h-full">
-              <Loader2 className="animate-spin h-8 w-8 text-primary" />
-              <span className="ml-2 text-gray-600">Loading chat history...</span>
+              <Loader2 className="animate-spin h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              <span className="ml-2 text-gray-600 text-sm sm:text-base">Loading chat history...</span>
             </div>
           ) : (
             messages.map(message => (
               <div 
                 key={message.id} 
-                className={`flex mb-4 ${message.role === 'user' ? 'justify-end' : ''}`}
+                className={`flex mb-3 sm:mb-4 ${message.role === 'user' ? 'justify-end' : ''}`}
               >
                 {message.role === 'assistant' && (
-                  <div className="w-8 h-8 rounded-full bg-primary-100 flex-shrink-0 flex items-center justify-center">
-                    <span className="material-icons text-primary-600 text-sm">smart_toy</span>
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-primary-100 flex-shrink-0 flex items-center justify-center">
+                    <span className="material-icons text-primary-600 text-xs sm:text-sm">smart_toy</span>
                   </div>
                 )}
                 
                 <div 
                   className={`${
                     message.role === 'assistant' 
-                      ? 'ml-3 bg-white text-gray-800' 
-                      : 'mr-3 bg-primary-50 text-gray-800'
-                  } p-3 rounded-lg shadow-sm max-w-[80%]`}
+                      ? 'ml-2 sm:ml-3 bg-white text-gray-800' 
+                      : 'mr-2 sm:mr-3 bg-primary-50 text-gray-800'
+                  } p-2 sm:p-3 rounded-lg shadow-sm max-w-[85%] sm:max-w-[80%] text-sm sm:text-base`}
                 >
                   {message.subject && message.role === 'user' && (
                     <div className="text-xs text-gray-500 mb-1">{message.subject}</div>
                   )}
-                  <p className="whitespace-pre-line">{message.content}</p>
+                  <p className="whitespace-pre-line break-words">{message.content}</p>
                 </div>
                 
                 {message.role === 'user' && (
-                  <Avatar className="w-8 h-8 flex-shrink-0">
-                    <AvatarFallback className="bg-primary-600 text-white">
+                  <Avatar className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0">
+                    <AvatarFallback className="bg-primary-600 text-white text-xs sm:text-sm">
                       {user ? getInitials(user.firstName, user.lastName) : 'U'}
                     </AvatarFallback>
                   </Avatar>
@@ -174,25 +174,25 @@ const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
           <div ref={messagesEndRef} />
         </DialogBody>
         
-        <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200 flex items-center">
+        <form onSubmit={handleSendMessage} className="p-3 sm:p-4 border-t border-gray-200 flex items-center shrink-0">
           <Input
             ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Ask me anything about your studies..."
-            className="flex-1 border border-gray-300"
+            className="flex-1 border border-gray-300 text-sm sm:text-base h-9 sm:h-10"
             disabled={isLoading}
           />
           <Button 
             type="submit" 
-            className="ml-2 p-2 rounded-full" 
+            className="ml-2 p-1 sm:p-2 rounded-full" 
             size="icon"
             disabled={!inputValue.trim() || isLoading}
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <span className="material-icons">send</span>
+              <span className="material-icons text-sm sm:text-base">send</span>
             )}
           </Button>
         </form>

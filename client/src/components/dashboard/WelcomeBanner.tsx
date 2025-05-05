@@ -102,47 +102,47 @@ const WelcomeBanner = () => {
   
   return (
     <>
-      <div className="mb-8 bg-white shadow-sm rounded-xl overflow-hidden">
-        <div className="md:flex">
-          <div className="p-6 md:p-8 flex-1">
-            <h2 className="font-nunito font-bold text-2xl text-gray-800">
+      <div className="mx-2 sm:mx-0 mb-8 bg-white shadow-sm rounded-xl overflow-hidden">
+        <div className="flex flex-col md:flex-row">
+          <div className="p-4 sm:p-6 md:p-8 flex-1">
+            <h2 className="font-nunito font-bold text-xl sm:text-2xl text-gray-800">
               Welcome back, {user?.firstName || 'Student'}!
             </h2>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-gray-600 text-sm sm:text-base">
               Ready to continue your learning journey? Here's what you can learn today:
             </p>
             <div className="mt-4 space-y-2">
-              <div className="flex">
-                <span className="material-icons text-primary-600 mr-2">check_circle</span>
-                <p className="text-gray-600">You've completed {weeklyGoalProgress}% of your weekly goal</p>
+              <div className="flex items-start">
+                <span className="material-icons text-primary-600 mr-2 text-base sm:text-lg mt-0.5">check_circle</span>
+                <p className="text-gray-600 text-sm sm:text-base">You've completed {weeklyGoalProgress}% of your weekly goal</p>
               </div>
-              <div className="flex">
-                <span className="material-icons text-warning-500 mr-2">star</span>
-                <p className="text-gray-600">
+              <div className="flex items-start">
+                <span className="material-icons text-warning-500 mr-2 text-base sm:text-lg mt-0.5">star</span>
+                <p className="text-gray-600 text-sm sm:text-base">
                   {recentBadges > 0 
                     ? `You've earned ${recentBadges} new badge${recentBadges > 1 ? 's' : ''} this week` 
                     : 'Complete more lessons to earn badges this week'}
                 </p>
               </div>
             </div>
-            <div className="mt-6">
-              <Button onClick={handleContinueLearning} className="mr-3">
+            <div className="mt-4 sm:mt-6">
+              <Button onClick={handleContinueLearning} className="text-sm sm:text-base w-full sm:w-auto">
                 <span className="material-icons mr-2 text-sm">play_arrow</span>
                 Continue Learning
               </Button>
             </div>
           </div>
-          <div className="md:w-1/3 bg-primary-500 p-6 flex items-center justify-center"
+          <div className="p-6 md:w-1/3 flex items-center justify-center"
                style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)' }}>
-            <div className="text-center">
-              <div className="font-nunito font-bold text-5xl text-white mb-2">JubunuAI</div>
-              <p className="text-primary-100 mb-4">Your personalized learning assistant</p>
+            <div className="text-center w-full">
+              <div className="font-nunito font-bold text-3xl sm:text-4xl md:text-5xl text-white mb-2">JubunuAI</div>
+              <p className="text-primary-100 mb-4 text-sm sm:text-base">Your personalized learning assistant</p>
               <Button
                 variant="outline"
-                className="px-4 py-2 bg-white text-primary-600 hover:bg-primary-50"
+                className="px-3 sm:px-4 py-2 bg-white text-primary-600 hover:bg-primary-50 w-full sm:w-auto text-sm sm:text-base"
                 onClick={handleOpenAiTutor}
               >
-                <span className="material-icons mr-2">smart_toy</span>
+                <span className="material-icons mr-2 text-sm sm:text-base">smart_toy</span>
                 Ask for help
               </Button>
             </div>
