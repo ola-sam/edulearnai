@@ -121,18 +121,18 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="flex min-h-screen flex-col md:flex-row items-center justify-center">
       {/* Login/Register Form */}
-      <div className="flex flex-1 items-center justify-center p-6 md:p-10">
-        <Card className="w-full max-w-md">
+      <div className="flex flex-1 items-center justify-center p-6 md:p-10 max-w-xl mx-auto">
+        <Card className="w-full shadow-lg">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-center">
               {activeTab === 'login' ? 'Welcome Back' : 'Create Account'}
             </CardTitle>
             <CardDescription className="text-center">
               {activeTab === 'login'
-                ? 'Sign in to your LearnBright account'
-                : 'Join LearnBright to start your learning journey'}
+                ? 'Sign in to your JubunuAI account'
+                : 'Join JubunuAI to start your learning journey'}
             </CardDescription>
           </CardHeader>
 
@@ -303,9 +303,9 @@ const AuthPage = () => {
       </div>
 
       {/* Hero Section */}
-      <div className="flex-1 bg-gradient-to-br from-primary-700 to-primary-900 p-6 md:p-10 flex flex-col justify-center">
+      <div className="hidden md:flex flex-1 bg-gradient-to-br from-primary-700 to-primary-900 p-6 md:p-10 flex-col justify-center">
         <div className="max-w-md mx-auto text-white space-y-6">
-          <h1 className="text-3xl md:text-4xl font-bold">Welcome to LearnBright</h1>
+          <h1 className="text-3xl md:text-4xl font-bold">Welcome to JubunuAI</h1>
           
           <p className="text-primary-100 text-lg">
             Your personalized learning platform designed to make education engaging, interactive, and accessible.
