@@ -153,7 +153,7 @@ const RecommendedLessons = () => {
                 </div>
                 <Button 
                   className="mt-4 w-full" 
-                  variant={buttonVariant}
+                  variant={buttonVariant as "math" | "english" | "science" | "default"}
                   onClick={() => startLesson(lesson.id)}
                 >
                   <span className="material-icons mr-1 text-sm">play_circle</span>
