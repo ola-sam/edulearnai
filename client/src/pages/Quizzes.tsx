@@ -15,7 +15,7 @@ import { formatDate } from '@/lib/utils';
 // Types for quiz questions and answers
 type QuizQuestion = {
   id: string;
-  text: string;
+  question: string;
   options: {
     id: string;
     text: string;
@@ -389,7 +389,7 @@ const Quizzes = () => {
                   
                   <div className="mb-6">
                     <h3 className="font-medium text-lg mb-4">
-                      {activeQuiz.questions[currentQuestionIndex].text}
+                      {activeQuiz.questions[currentQuestionIndex].question}
                     </h3>
                     
                     <RadioGroup 
