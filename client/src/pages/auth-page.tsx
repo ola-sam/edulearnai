@@ -123,8 +123,8 @@ const AuthPage = () => {
   return (
     <div className="flex min-h-screen flex-col md:flex-row items-center justify-center">
       {/* Login/Register Form */}
-      <div className="flex flex-1 items-center justify-center p-6 md:p-10 max-w-xl mx-auto">
-        <Card className="w-full shadow-lg">
+      <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-6 md:p-10 bg-gray-50 dark:bg-gray-900">
+        <Card className="w-full max-w-md shadow-xl">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-center">
               {activeTab === 'login' ? 'Welcome Back' : 'Create Account'}
@@ -303,7 +303,7 @@ const AuthPage = () => {
       </div>
 
       {/* Hero Section */}
-      <div className="hidden md:flex flex-1 bg-gradient-to-br from-primary-700 to-primary-900 p-6 md:p-10 flex-col justify-center">
+      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-primary-700 to-primary-900 p-6 md:p-10 flex-col justify-center">
         <div className="max-w-md mx-auto text-white space-y-6">
           <h1 className="text-3xl md:text-4xl font-bold">Welcome to JubunuAI</h1>
           
