@@ -22,9 +22,15 @@ type RecommendedLesson = {
 
 const RecommendedLessons = () => {
   const { user } = useUser();
+  const { startLesson } = useLearning();
   
   const { data: recommendations, isLoading } = useQuery({
     queryKey: [`/api/users/${user?.id}/recommendations`],
+    enabled: !!user,
+  });
+  
+  const { data: userProgress } = useQuery({
+    queryKey: [`/api/users/${user?.id}/progress`],
     enabled: !!user,
   });
   
@@ -40,6 +46,12 @@ const RecommendedLessons = () => {
     'Mathematics': 'math',
     'English': 'english',
     'Science': 'science',
+  };
+  
+  // Check if there is progress for a lesson
+  const hasLessonProgress = (lessonId: number): boolean => {
+    if (!userProgress) return false;
+    return userProgress.some((progress: any) => progress.lessonId === lessonId);
   };
   
   if (isLoading) {
@@ -142,9 +154,10 @@ const RecommendedLessons = () => {
                 <Button 
                   className="mt-4 w-full" 
                   variant={buttonVariant}
+                  onClick={() => startLesson(lesson.id)}
                 >
                   <span className="material-icons mr-1 text-sm">play_circle</span>
-                  Start Lesson
+                  {hasLessonProgress(lesson.id) ? 'Continue Learning' : 'Start Lesson'}
                 </Button>
               </CardContent>
             </Card>
