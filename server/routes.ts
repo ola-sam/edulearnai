@@ -379,6 +379,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(recommendations.slice(0, 3));
   });
 
+  // AI Tutor routes
+  app.post("/api/ai/tutor", async (req, res) => {
+    try {
+      const tutorRequestSchema = z.object({
+        userId: z.number(),
+        message: z.string().min(1),
+        subject: z.string().optional(),
+      });
+      
+      const { userId, message, subject } = tutorRequestSchema.parse(req.body);
+      
+      // Get user information for context
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Get user progress and quiz results for context
+      const progress = await storage.getUserProgress(userId);
+      const quizResults = await storage.getQuizResults(userId);
+      
+      // Get recent lessons
+      const recentLessons = [];
+      for (const p of progress) {
+        const lesson = await storage.getLessonById(p.lessonId);
+        if (lesson) {
+          recentLessons.push(lesson);
+        }
+      }
+      
+      // Create context for AI tutor
+      const context: AITutorRequest["context"] = {
+        grade: user.grade,
+        subject: subject,
+        recentLessons: recentLessons.slice(0, 5), // Just the 5 most recent
+        quizResults: quizResults.slice(0, 5)      // Just the 5 most recent
+      };
+      
+      // Generate AI response
+      const aiResponse = await generateTutorResponse({
+        userId,
+        message,
+        context
+      });
+      
+      res.json(aiResponse);
+    } catch (error) {
+      console.error("Error in AI tutor route:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid tutor request", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to generate AI tutor response" });
+    }
+  });
+  
+  // Chat history routes for AI tutor
+  app.get("/api/users/:userId/chat-history", async (req, res) => {
+    // This would be implemented with a proper chat history storage
+    // For now, we just return an empty array
+    res.json([]);
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
