@@ -15,22 +15,24 @@ import TeacherDashboard from "@/pages/teacher/Dashboard";
 import AppShell from "@/components/layout/AppShell";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
-import { AuthProvider } from "./hooks/use-auth";
+import { AuthProvider, useAuth } from "./hooks/use-auth";
 import { LearningProvider } from "./context/LearningContext";
 import { ProtectedRoute } from "./lib/protected-route";
 
 // TeacherRoute component to protect teacher-specific routes
 const TeacherRoute = ({ component: Component, ...rest }: any) => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isLoading } = useAuth();
   
   // Check if user is authenticated and is a teacher
-  const isAuthorized = isAuthenticated && user?.isTeacher === true;
+  const isAuthorized = !isLoading && user && user.isTeacher === true;
   
   return (
     <Route
       {...rest}
       component={(props: any) =>
-        isAuthorized ? (
+        isLoading ? (
+          <div className="flex items-center justify-center h-screen">Loading...</div>
+        ) : isAuthorized ? (
           <Component {...props} />
         ) : (
           // Redirect to dashboard if not a teacher

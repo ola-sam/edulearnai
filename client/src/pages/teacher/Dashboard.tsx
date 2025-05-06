@@ -257,6 +257,108 @@ const TeacherDashboard = () => {
         </Card>
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <Card className="col-span-1 lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Class Performance</CardTitle>
+            <CardDescription>Performance metrics across all your classes</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[300px] flex items-center justify-center">
+            {analyticsLoading ? (
+              <p>Loading analytics...</p>
+            ) : (
+              <div className="w-full">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                  <div className="p-4 border rounded-lg bg-green-50">
+                    <div className="flex items-center mb-2">
+                      <div className="bg-green-100 p-2 rounded-full mr-3">
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      </div>
+                      <h3 className="font-medium text-green-700">Completion Rate</h3>
+                    </div>
+                    <div className="text-2xl font-bold text-green-700">{analytics.completionRate}%</div>
+                    <div className="text-sm text-green-600">Average assignment completion</div>
+                  </div>
+                  
+                  <div className="p-4 border rounded-lg bg-blue-50">
+                    <div className="flex items-center mb-2">
+                      <div className="bg-blue-100 p-2 rounded-full mr-3">
+                        <BarChart3 className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <h3 className="font-medium text-blue-700">Average Score</h3>
+                    </div>
+                    <div className="text-2xl font-bold text-blue-700">{analytics.averageScore}%</div>
+                    <div className="text-sm text-blue-600">Average student performance</div>
+                  </div>
+                  
+                  <div className="p-4 border rounded-lg bg-purple-50">
+                    <div className="flex items-center mb-2">
+                      <div className="bg-purple-100 p-2 rounded-full mr-3">
+                        <Users className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <h3 className="font-medium text-purple-700">Active Students</h3>
+                    </div>
+                    <div className="text-2xl font-bold text-purple-700">{analytics.totalStudents}</div>
+                    <div className="text-sm text-purple-600">Students across all classes</div>
+                  </div>
+                </div>
+                
+                <div className="w-full flex justify-center">
+                  <Link href="/teacher/analytics">
+                    <Button variant="outline">View Detailed Analytics</Button>
+                  </Link>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        <Card className="col-span-1">
+          <CardHeader>
+            <CardTitle>Upcoming Activities</CardTitle>
+            <CardDescription>Your schedule for the week</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center p-3 border rounded-lg bg-purple-50">
+                <div className="bg-purple-100 p-2 rounded-full mr-3">
+                  <Calendar className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-purple-800">Math 101 Class</h4>
+                  <p className="text-sm text-purple-600">Today, 10:00 AM</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center p-3 border rounded-lg">
+                <div className="bg-primary/10 p-2 rounded-full mr-3">
+                  <ListTodo className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h4 className="font-medium">Assignment Due</h4>
+                  <p className="text-sm text-muted-foreground">Tomorrow, 11:59 PM</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center p-3 border rounded-lg">
+                <div className="bg-primary/10 p-2 rounded-full mr-3">
+                  <UserCheck className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h4 className="font-medium">Parent-Teacher Meeting</h4>
+                  <p className="text-sm text-muted-foreground">Friday, 3:00 PM</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Link href="/teacher/calendar">
+              <Button variant="outline" className="w-full">View Full Calendar</Button>
+            </Link>
+          </CardFooter>
+        </Card>
+      </div>
+      
       <div className="grid grid-cols-1 gap-6">
         <Card>
           <CardHeader>

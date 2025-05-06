@@ -66,14 +66,26 @@ const Sidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const navItems = [
-    { href: '/', icon: 'dashboard', label: 'Dashboard' },
+  // Define navigation items
+  const studentNavItems = [
+    { href: '/dashboard', icon: 'dashboard', label: 'Dashboard' },
     { href: '/lessons', icon: 'auto_stories', label: 'My Lessons' },
     { href: '/quizzes', icon: 'quiz', label: 'Quizzes' },
     { href: '/achievements', icon: 'emoji_events', label: 'Achievements' },
     { href: '/leaderboard', icon: 'leaderboard', label: 'Leaderboard' },
     { href: '/downloads', icon: 'download', label: 'Downloads' },
   ];
+  
+  // Define teacher-specific navigation items
+  const teacherNavItems = [
+    { href: '/teacher/dashboard', icon: 'space_dashboard', label: 'Teacher Dashboard' },
+    { href: '/dashboard', icon: 'school', label: 'Student View' },
+  ];
+  
+  // Use the appropriate navigation items based on user role
+  const navItems = user?.isTeacher 
+    ? [...teacherNavItems, ...studentNavItems] 
+    : studentNavItems;
 
   // Mobile navigation bar
   const MobileNav = () => (
