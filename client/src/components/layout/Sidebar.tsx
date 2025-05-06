@@ -86,9 +86,10 @@ const Sidebar = () => {
     { href: '/dashboard', icon: 'school', label: 'Student View' },
   ];
   
-  // Use the appropriate navigation items based on user role
+  // For teachers, only show teacher navigation with a link to student view
+  // For students, show student navigation only
   const navItems = user?.isTeacher 
-    ? [...teacherNavItems, ...studentNavItems] 
+    ? teacherNavItems
     : studentNavItems;
 
   // Mobile navigation bar
