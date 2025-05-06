@@ -75,10 +75,10 @@ const BadgeCard = ({ badge }: { badge: BadgeWithProgress }) => {
           </p>
           
           {isEarned ? (
-            <Badge variant="success" className="mb-2 px-3 py-1 flex items-center gap-1">
+            <div className="mb-2 px-3 py-1 flex items-center gap-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
               <span className="material-icons text-xs">verified</span>
               <span>Earned {formatDate(new Date(badge.dateEarned || ''))}</span>
-            </Badge>
+            </div>
           ) : (
             <>
               <div className="w-full mb-2">
@@ -284,18 +284,39 @@ const Achievements = () => {
         </TabsList>
         
         <TabsContent value="all">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {badgesWithProgress.map(badge => (
-              <BadgeCard key={badge.id} badge={badge} />
-            ))}
-          </div>
+          {badgesWithProgress.length === 0 ? (
+            <div className="text-center py-12 px-4">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-8 max-w-lg mx-auto">
+                <span className="material-icons text-5xl text-gray-400 mb-4 inline-block">emoji_events</span>
+                <h3 className="text-xl font-nunito font-bold text-gray-700 mb-2">No Badges Available Yet</h3>
+                <p className="text-gray-600 mb-4">Achievements will appear here once they're added to the system. Keep learning in the meantime!</p>
+                <div className="flex items-center justify-center gap-2 text-primary-600">
+                  <span className="material-icons text-sm">school</span>
+                  <span className="text-sm font-medium">Try completing lessons to unlock future achievements</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {badgesWithProgress.map(badge => (
+                <BadgeCard key={badge.id} badge={badge} />
+              ))}
+            </div>
+          )}
         </TabsContent>
         
         <TabsContent value="earned">
           {earnedBadges.length === 0 ? (
-            <div className="text-center py-8">
-              <span className="material-icons text-4xl text-gray-400 mb-2">emoji_events</span>
-              <p className="text-gray-500">You haven't earned any badges yet. Keep learning to earn your first badge!</p>
+            <div className="text-center py-12 px-4">
+              <div className="bg-gray-50 rounded-xl p-8 max-w-lg mx-auto">
+                <span className="material-icons text-5xl text-amber-400 mb-4 inline-block">stars</span>
+                <h3 className="text-xl font-nunito font-bold text-gray-700 mb-2">No Badges Earned Yet</h3>
+                <p className="text-gray-600 mb-4">Complete lessons, ace quizzes, and learn consistently to earn your first achievement badge!</p>
+                <div className="flex items-center justify-center gap-2 text-primary-600">
+                  <span className="material-icons text-sm">lightbulb</span>
+                  <span className="text-sm font-medium">Tip: Start with completing a subject's lessons to earn a subject badge</span>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -307,10 +328,24 @@ const Achievements = () => {
         </TabsContent>
         
         <TabsContent value="progress">
-          {unearnedBadges.length === 0 ? (
-            <div className="text-center py-8">
-              <span className="material-icons text-4xl text-gray-400 mb-2">check_circle</span>
-              <p className="text-gray-500">Congratulations! You've earned all available badges.</p>
+          {unearnedBadges.length === 0 && badgesWithProgress.length > 0 ? (
+            <div className="text-center py-12 px-4">
+              <div className="bg-gradient-to-br from-primary-50 to-purple-50 rounded-xl p-8 max-w-lg mx-auto">
+                <span className="material-icons text-5xl text-purple-500 mb-4 inline-block">workspace_premium</span>
+                <h3 className="text-xl font-nunito font-bold text-gray-700 mb-2">Achievement Master!</h3>
+                <p className="text-gray-600 mb-4">Congratulations! You've earned all available badges. You're a true learning champion!</p>
+                <div className="inline-block bg-white px-4 py-2 rounded-full shadow-sm text-primary-600 font-medium">
+                  100% Complete
+                </div>
+              </div>
+            </div>
+          ) : unearnedBadges.length === 0 && badgesWithProgress.length === 0 ? (
+            <div className="text-center py-12 px-4">
+              <div className="bg-gray-50 rounded-xl p-8 max-w-lg mx-auto">
+                <span className="material-icons text-5xl text-gray-400 mb-4 inline-block">pending_actions</span>
+                <h3 className="text-xl font-nunito font-bold text-gray-700 mb-2">No Badges Available</h3>
+                <p className="text-gray-600">There are currently no badges available in the system. Check back later for new achievements to earn!</p>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
