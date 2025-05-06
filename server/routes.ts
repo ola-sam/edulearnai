@@ -574,14 +574,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         teacherClasses = await storage.getClassesByTeacher(user.id);
       }
       
-      // Enhance with student count data
+      // Enhance with student count data and format dates for frontend
       const classesWithStudentCount = await Promise.all(
         teacherClasses.map(async (cls) => {
           const students = await storage.getClassEnrollments(cls.id);
-          return {
+          
+          // Format the class data for frontend consumption
+          const formattedClass = {
             ...cls,
+            // Format dates as ISO strings if they're Date objects
+            startDate: cls.startDate && typeof cls.startDate === 'object' 
+              ? new Date(cls.startDate as any).toISOString().split('T')[0] 
+              : cls.startDate,
+            endDate: cls.endDate && typeof cls.endDate === 'object'
+              ? new Date(cls.endDate as any).toISOString().split('T')[0] 
+              : cls.endDate,
             studentCount: students.length
           };
+          
+          return formattedClass;
         })
       );
       
@@ -643,11 +654,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Fetch the newly created assignments
           recentAssignments = await storage.getRecentAssignmentsByTeacher(user.id, 5);
           
-          // Add class names to the assignments
-          recentAssignments = recentAssignments.map(assignment => ({
-            ...assignment,
-            className: classNames[assignment.classId] || 'Unknown Class'
-          }));
+          // Add class names to the assignments and format dates
+          recentAssignments = recentAssignments.map(assignment => {
+            // Create a properly formatted assignment object
+            const formattedAssignment = {
+              ...assignment,
+              className: classNames[assignment.classId] || 'Unknown Class',
+            };
+            
+            // Format the date fields if they exist and are objects
+            if (assignment.dueDate && typeof assignment.dueDate === 'object') {
+              (formattedAssignment as any).dueDate = new Date(assignment.dueDate as any).toISOString();
+            }
+            
+            if (assignment.assignedDate && typeof assignment.assignedDate === 'object') {
+              (formattedAssignment as any).assignedDate = new Date(assignment.assignedDate as any).toISOString();
+            }
+            
+            return formattedAssignment;
+          });
         }
       }
       

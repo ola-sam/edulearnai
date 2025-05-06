@@ -47,10 +47,16 @@ const TeacherClasses = () => {
     studentCount: number;
   };
 
-  // Query to get teacher's classes with proper type
-  const { data: classes = [], isLoading: classesLoading } = useQuery<ClassType[]>({
+  // Query to get teacher's classes with proper type and handling
+  const { 
+    data: classes = [], 
+    isLoading: classesLoading,
+    isError: classesError
+  } = useQuery<ClassType[]>({
     queryKey: ['/api/teacher/classes'],
     enabled: !!user?.isTeacher,
+    staleTime: 60000, // 1 minute
+    refetchOnWindowFocus: false, // Don't refetch on window focus for better performance
   });
 
   // Filtered classes based on search term
@@ -109,6 +115,23 @@ const TeacherClasses = () => {
               </CardFooter>
             </Card>
           ))}
+        </div>
+      ) : classesError ? (
+        <div className="text-center py-12 border rounded-xl bg-muted/10">
+          <div className="text-red-500 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium mb-2">Error Loading Classes</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            There was a problem loading your classes. Please try again.
+          </p>
+          <Button onClick={() => window.location.reload()}>
+            Refresh Page
+          </Button>
         </div>
       ) : filteredClasses.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
