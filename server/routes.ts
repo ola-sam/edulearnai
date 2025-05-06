@@ -536,12 +536,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get classes for a teacher
   app.get("/api/teacher/classes", requireTeacher, async (req, res) => {
     try {
-      // In a real implementation, we would query the database for classes where teacherId equals the current user's ID
-      // For now, return simulated data based on existing schema
       const user = req.user!;
-      res.json([
-        {
-          id: 1,
+      
+      // Check if we have classes in the database for this teacher
+      let teacherClasses = await storage.getClassesByTeacher(user.id);
+      
+      // If no classes exist, create some sample data and return it
+      if (teacherClasses.length === 0) {
+        // Create sample classes for this teacher
+        await storage.createClass({
           name: "Math 101",
           description: "Introduction to Mathematics",
           grade: 5,
@@ -552,9 +555,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           endDate: "2026-05-30",
           classCode: "MATH101",
           isActive: true
-        },
-        {
-          id: 2,
+        });
+        
+        await storage.createClass({
           name: "Science for Beginners",
           description: "Basic Science Concepts",
           grade: 5,
@@ -565,8 +568,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           endDate: "2026-05-30",
           classCode: "SCI101",
           isActive: true
-        }
-      ]);
+        });
+        
+        // Fetch the newly created classes
+        teacherClasses = await storage.getClassesByTeacher(user.id);
+      }
+      
+      // Enhance with student count data
+      const classesWithStudentCount = await Promise.all(
+        teacherClasses.map(async (cls) => {
+          const students = await storage.getClassEnrollments(cls.id);
+          return {
+            ...cls,
+            studentCount: students.length
+          };
+        })
+      );
+      
+      res.json(classesWithStudentCount);
     } catch (error) {
       console.error("Error fetching teacher classes:", error);
       res.status(500).json({ message: "Failed to fetch teacher classes" });
@@ -577,28 +596,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teacher/assignments/recent", requireTeacher, async (req, res) => {
     try {
       const user = req.user!;
-      res.json([
-        {
-          id: 1,
-          title: "Multiplication Tables Quiz",
-          description: "Complete the multiplication tables quiz",
-          classId: 1,
-          className: "Math 101",
-          dueDate: "2025-09-15T00:00:00.000Z",
-          assignedDate: "2025-09-01T00:00:00.000Z",
-          status: "active"
-        },
-        {
-          id: 2,
-          title: "Animal Cell Structure",
-          description: "Label the parts of an animal cell",
-          classId: 2,
-          className: "Science for Beginners",
-          dueDate: "2025-09-20T00:00:00.000Z",
-          assignedDate: "2025-09-05T00:00:00.000Z",
-          status: "active"
+      
+      // Get recent assignments from storage
+      let recentAssignments = await storage.getRecentAssignmentsByTeacher(user.id, 5);
+      
+      // If no assignments exist, create sample data
+      if (recentAssignments.length === 0) {
+        // First ensure we have classes to associate with the assignments
+        const teacherClasses = await storage.getClassesByTeacher(user.id);
+        
+        if (teacherClasses.length > 0) {
+          // Create sample assignments
+          const classIds = teacherClasses.map(cls => cls.id);
+          const classNames = teacherClasses.reduce((map, cls) => {
+            map[cls.id] = cls.name;
+            return map;
+          }, {} as Record<number, string>);
+          
+          await storage.createAssignment({
+            title: "Multiplication Tables Quiz",
+            description: "Complete the multiplication tables quiz",
+            instructions: "Answer all questions in the quiz",
+            classId: classIds[0],
+            teacherId: user.id,
+            dueDate: new Date("2025-09-15"),
+            assignedDate: new Date("2025-09-01"),
+            points: 100,
+            status: "active"
+          });
+          
+          if (classIds.length > 1) {
+            await storage.createAssignment({
+              title: "Animal Cell Structure",
+              description: "Label the parts of an animal cell",
+              instructions: "Label all the parts of the cell diagram",
+              classId: classIds[1],
+              teacherId: user.id,
+              dueDate: new Date("2025-09-20"),
+              assignedDate: new Date("2025-09-05"),
+              points: 100,
+              status: "active"
+            });
+          }
+          
+          // Fetch the newly created assignments
+          recentAssignments = await storage.getRecentAssignmentsByTeacher(user.id, 5);
+          
+          // Add class names to the assignments
+          recentAssignments = recentAssignments.map(assignment => ({
+            ...assignment,
+            className: classNames[assignment.classId] || 'Unknown Class'
+          }));
         }
-      ]);
+      }
+      
+      res.json(recentAssignments);
     } catch (error) {
       console.error("Error fetching recent assignments:", error);
       res.status(500).json({ message: "Failed to fetch recent assignments" });
@@ -608,12 +660,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get analytics summary for a teacher
   app.get("/api/teacher/analytics/summary", requireTeacher, async (req, res) => {
     try {
-      // For now, return simulated data
-      res.json({
-        totalStudents: 42,
-        averageScore: 85.5,
-        completionRate: 78.3
-      });
+      const user = req.user!;
+      
+      // Get analytics data from storage
+      const analyticsSummary = await storage.getAnalyticsSummary(user.id);
+      
+      res.json(analyticsSummary);
     } catch (error) {
       console.error("Error fetching analytics summary:", error);
       res.status(500).json({ message: "Failed to fetch analytics summary" });
