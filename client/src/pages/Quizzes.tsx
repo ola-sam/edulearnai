@@ -12,6 +12,38 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDate } from '@/lib/utils';
 
+// Define interfaces for the data we're working with
+interface Lesson {
+  id: number;
+  title: string;
+  subjectId: number;
+  grade: number;
+}
+
+interface Subject {
+  id: number;
+  name: string;
+  icon: string;
+  color: string;
+}
+
+interface QuizResult {
+  id: number;
+  userId: number;
+  quizId: number;
+  score: number;
+  maxScore: number;
+  dateTaken: string;
+}
+
+interface Quiz {
+  id: number;
+  title: string;
+  description: string;
+  lessonId: number;
+  questions: QuizQuestion[];
+}
+
 // Types for quiz questions and answers
 type QuizQuestion = {
   id: string;
@@ -40,22 +72,22 @@ const Quizzes = () => {
   const [activeTab, setActiveTab] = useState('available');
 
   // Fetch lessons, quizzes, and results
-  const { data: lessons, isLoading: lessonsLoading } = useQuery({
+  const { data: lessons, isLoading: lessonsLoading } = useQuery<Lesson[]>({
     queryKey: ['/api/lessons'],
     enabled: !!user,
   });
 
-  const { data: quizzes, isLoading: quizzesLoading } = useQuery({
+  const { data: quizzes, isLoading: quizzesLoading } = useQuery<Quiz[]>({
     queryKey: ['/api/quizzes'],
     enabled: !!user,
   });
 
-  const { data: subjects } = useQuery({
+  const { data: subjects } = useQuery<Subject[]>({
     queryKey: ['/api/subjects'],
     enabled: !!user,
   });
 
-  const { data: quizResults } = useQuery({
+  const { data: quizResults } = useQuery<QuizResult[]>({
     queryKey: [`/api/users/${user?.id}/quiz-results`],
     enabled: !!user,
   });
@@ -206,13 +238,26 @@ const Quizzes = () => {
     );
   }
 
-  // Separate quizzes into completed and available
-  const completedQuizzes = quizzes?.filter((quiz: any) => isQuizCompleted(quiz.id)) || [];
-  const availableQuizzes = quizzes?.filter((quiz: any) => !isQuizCompleted(quiz.id)) || [];
+  // Filter quizzes by user's grade and then separate into completed and available
+  const gradeAppropriateQuizzes = quizzes?.filter((quiz: any) => {
+    if (!lessons) return false;
+    const lesson = lessons.find((l: any) => l.id === quiz.lessonId);
+    return lesson && lesson.grade === user?.grade;
+  }) || [];
+  
+  const completedQuizzes = gradeAppropriateQuizzes.filter((quiz: any) => isQuizCompleted(quiz.id)) || [];
+  const availableQuizzes = gradeAppropriateQuizzes.filter((quiz: any) => !isQuizCompleted(quiz.id)) || [];
 
   return (
     <div className="py-6 px-4 sm:px-6 lg:px-8">
-      <h1 className="font-nunito font-bold text-2xl text-gray-800 mb-6">Quizzes</h1>
+      <h1 className="font-nunito font-bold text-2xl text-gray-800 mb-4">Quizzes</h1>
+      
+      <div className="bg-primary-50 border border-primary-200 rounded-lg p-3 mb-6 flex items-center">
+        <span className="material-icons text-primary-500 mr-2">filter_list</span>
+        <p className="text-sm text-primary-700">
+          Showing quizzes for Grade {user?.grade}
+        </p>
+      </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
         <TabsList className="w-full justify-start border-b pb-0 mb-6">
