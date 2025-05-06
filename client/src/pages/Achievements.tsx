@@ -230,36 +230,40 @@ const Achievements = () => {
         <p className="text-gray-600">Track your learning achievements and earn badges as you progress</p>
       </div>
       
-      <div className="mb-6 bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
-        <div className="flex flex-col sm:flex-row items-center">
-          <div className="w-20 h-20 bg-gradient-to-br from-primary-50 to-primary-100 rounded-full 
-            flex items-center justify-center mb-4 sm:mb-0 sm:mr-6 shadow-md relative">
-            <span className="material-icons text-primary-600 text-3xl animate-pulse">emoji_events</span>
+      <div className="mb-8 bg-white p-8 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+        <div className="flex flex-col items-center justify-center">
+          <div className="w-24 h-24 bg-gradient-to-br from-primary-50 to-primary-100 rounded-full 
+            flex items-center justify-center mb-6 shadow-md relative">
+            <span className="material-icons text-primary-600 text-4xl animate-pulse">emoji_events</span>
             <div className="absolute inset-0 rounded-full bg-primary-500 opacity-10 animate-ping-slow"></div>
           </div>
-          <div className="text-center sm:text-left">
-            <h2 className="font-nunito font-semibold text-xl text-gray-800">Your Achievement Stats</h2>
-            <div className="mt-4 grid grid-cols-3 gap-6">
-              <div className="bg-gradient-to-br from-primary-50 to-primary-100 p-3 rounded-lg shadow-sm">
-                <div className="flex items-center justify-center sm:justify-start mb-1">
-                  <span className="material-icons text-primary-500 mr-1">military_tech</span>
-                  <p className="text-xs font-medium text-primary-700">Earned</p>
+          
+          <h2 className="font-nunito font-semibold text-2xl text-gray-800 mb-5 text-center">Your Achievement Stats</h2>
+          
+          <div className="w-full max-w-3xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+              <div className="bg-gradient-to-br from-primary-50 to-primary-100 p-4 sm:p-5 rounded-lg shadow-sm flex flex-col items-center">
+                <div className="flex items-center justify-center mb-2">
+                  <span className="material-icons text-primary-500 mr-2">military_tech</span>
+                  <p className="text-sm font-medium text-primary-700">Badges Earned</p>
                 </div>
-                <p className="font-nunito font-bold text-2xl text-primary-700 text-center">{earnedBadges.length}</p>
+                <p className="font-nunito font-bold text-3xl text-primary-700 text-center">{earnedBadges.length}</p>
               </div>
-              <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-3 rounded-lg shadow-sm">
-                <div className="flex items-center justify-center sm:justify-start mb-1">
-                  <span className="material-icons text-amber-500 mr-1">pending</span>
-                  <p className="text-xs font-medium text-amber-700">In Progress</p>
+              
+              <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-4 sm:p-5 rounded-lg shadow-sm flex flex-col items-center">
+                <div className="flex items-center justify-center mb-2">
+                  <span className="material-icons text-amber-500 mr-2">pending</span>
+                  <p className="text-sm font-medium text-amber-700">In Progress</p>
                 </div>
-                <p className="font-nunito font-bold text-2xl text-amber-700 text-center">{unearnedBadges.length}</p>
+                <p className="font-nunito font-bold text-3xl text-amber-700 text-center">{unearnedBadges.length}</p>
               </div>
-              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-3 rounded-lg shadow-sm">
-                <div className="flex items-center justify-center sm:justify-start mb-1">
-                  <span className="material-icons text-emerald-500 mr-1">percent</span>
-                  <p className="text-xs font-medium text-emerald-700">Complete</p>
+              
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 sm:p-5 rounded-lg shadow-sm flex flex-col items-center">
+                <div className="flex items-center justify-center mb-2">
+                  <span className="material-icons text-emerald-500 mr-2">percent</span>
+                  <p className="text-sm font-medium text-emerald-700">Completion</p>
                 </div>
-                <p className="font-nunito font-bold text-2xl text-emerald-700 text-center">
+                <p className="font-nunito font-bold text-3xl text-emerald-700 text-center">
                   {badgesWithProgress.length > 0 
                     ? Math.round((earnedBadges.length / badgesWithProgress.length) * 100) 
                     : 0}%
