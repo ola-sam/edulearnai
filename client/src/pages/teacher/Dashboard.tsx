@@ -34,20 +34,54 @@ import { Link } from "wouter";
 const TeacherDashboard = () => {
   const { user } = useAuth();
   
-  // Query to get teacher's classes
-  const { data: classes, isLoading: classesLoading } = useQuery({
+  // Define proper types for our API responses
+  type ClassType = {
+    id: number;
+    name: string;
+    description: string;
+    grade: number;
+    subject: string;
+    teacherId: number;
+    academicYear: string;
+    startDate: string;
+    endDate: string;
+    classCode: string;
+    isActive: boolean;
+  };
+
+  type AssignmentType = {
+    id: number;
+    title: string;
+    description: string;
+    classId: number;
+    className: string;
+    dueDate: string;
+    status: string;
+    assignedDate: string;
+  };
+
+  type AnalyticsType = {
+    totalStudents: number;
+    averageScore: number;
+    completionRate: number;
+  };
+
+  // Query to get teacher's classes with proper type
+  const { data: classes = [], isLoading: classesLoading } = useQuery<ClassType[]>({
     queryKey: ['/api/teacher/classes'],
     enabled: !!user?.isTeacher,
   });
   
-  // Query to get recent assignments
-  const { data: assignments, isLoading: assignmentsLoading } = useQuery({
+  // Query to get recent assignments with proper type
+  const { data: assignments = [], isLoading: assignmentsLoading } = useQuery<AssignmentType[]>({
     queryKey: ['/api/teacher/assignments/recent'],
     enabled: !!user?.isTeacher,
   });
   
-  // Query to get student analytics
-  const { data: analytics, isLoading: analyticsLoading } = useQuery({
+  // Query to get student analytics with proper type
+  const { data: analytics = { totalStudents: 0, averageScore: 0, completionRate: 0 }, 
+    isLoading: analyticsLoading 
+  } = useQuery<AnalyticsType>({
     queryKey: ['/api/teacher/analytics/summary'],
     enabled: !!user?.isTeacher,
   });

@@ -11,12 +11,35 @@ import LeaderboardPage from "@/pages/LeaderboardPage";
 import Downloads from "@/pages/Downloads";
 import AuthPage from "@/pages/auth-page";
 import LandingPage from "@/pages/LandingPage";
+import TeacherDashboard from "@/pages/teacher/Dashboard";
 import AppShell from "@/components/layout/AppShell";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { AuthProvider } from "./hooks/use-auth";
 import { LearningProvider } from "./context/LearningContext";
 import { ProtectedRoute } from "./lib/protected-route";
+
+// TeacherRoute component to protect teacher-specific routes
+const TeacherRoute = ({ component: Component, ...rest }: any) => {
+  const { user, isAuthenticated } = useAuth();
+  
+  // Check if user is authenticated and is a teacher
+  const isAuthorized = isAuthenticated && user?.isTeacher === true;
+  
+  return (
+    <Route
+      {...rest}
+      component={(props: any) =>
+        isAuthorized ? (
+          <Component {...props} />
+        ) : (
+          // Redirect to dashboard if not a teacher
+          <Dashboard />
+        )
+      }
+    />
+  );
+};
 
 function Router() {
   return (
@@ -29,6 +52,10 @@ function Router() {
       <ProtectedRoute path="/achievements" component={Achievements} />
       <ProtectedRoute path="/leaderboard" component={LeaderboardPage} />
       <ProtectedRoute path="/downloads" component={Downloads} />
+      
+      {/* Teacher routes */}
+      <TeacherRoute path="/teacher/dashboard" component={TeacherDashboard} />
+      
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>

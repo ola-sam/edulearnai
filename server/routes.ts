@@ -519,6 +519,194 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Teacher-specific routes
+  // Middleware to check if user is a teacher
+  const requireTeacher = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    if (!req.user.isTeacher) {
+      return res.status(403).json({ message: "Forbidden: Teachers only" });
+    }
+    
+    next();
+  };
+  
+  // Get classes for a teacher
+  app.get("/api/teacher/classes", requireTeacher, async (req, res) => {
+    try {
+      // In a real implementation, we would query the database for classes where teacherId equals the current user's ID
+      // For now, return simulated data based on existing schema
+      const user = req.user!;
+      res.json([
+        {
+          id: 1,
+          name: "Math 101",
+          description: "Introduction to Mathematics",
+          grade: 5,
+          subject: "Mathematics",
+          teacherId: user.id,
+          academicYear: "2025-2026",
+          startDate: "2025-08-15",
+          endDate: "2026-05-30",
+          classCode: "MATH101",
+          isActive: true
+        },
+        {
+          id: 2,
+          name: "Science for Beginners",
+          description: "Basic Science Concepts",
+          grade: 5,
+          subject: "Science",
+          teacherId: user.id,
+          academicYear: "2025-2026",
+          startDate: "2025-08-15",
+          endDate: "2026-05-30",
+          classCode: "SCI101",
+          isActive: true
+        }
+      ]);
+    } catch (error) {
+      console.error("Error fetching teacher classes:", error);
+      res.status(500).json({ message: "Failed to fetch teacher classes" });
+    }
+  });
+  
+  // Get recent assignments for a teacher
+  app.get("/api/teacher/assignments/recent", requireTeacher, async (req, res) => {
+    try {
+      const user = req.user!;
+      res.json([
+        {
+          id: 1,
+          title: "Multiplication Tables Quiz",
+          description: "Complete the multiplication tables quiz",
+          classId: 1,
+          className: "Math 101",
+          dueDate: "2025-09-15T00:00:00.000Z",
+          assignedDate: "2025-09-01T00:00:00.000Z",
+          status: "active"
+        },
+        {
+          id: 2,
+          title: "Animal Cell Structure",
+          description: "Label the parts of an animal cell",
+          classId: 2,
+          className: "Science for Beginners",
+          dueDate: "2025-09-20T00:00:00.000Z",
+          assignedDate: "2025-09-05T00:00:00.000Z",
+          status: "active"
+        }
+      ]);
+    } catch (error) {
+      console.error("Error fetching recent assignments:", error);
+      res.status(500).json({ message: "Failed to fetch recent assignments" });
+    }
+  });
+  
+  // Get analytics summary for a teacher
+  app.get("/api/teacher/analytics/summary", requireTeacher, async (req, res) => {
+    try {
+      // For now, return simulated data
+      res.json({
+        totalStudents: 42,
+        averageScore: 85.5,
+        completionRate: 78.3
+      });
+    } catch (error) {
+      console.error("Error fetching analytics summary:", error);
+      res.status(500).json({ message: "Failed to fetch analytics summary" });
+    }
+  });
+  
+  // Get all students in a teacher's classes
+  app.get("/api/teacher/students", requireTeacher, async (req, res) => {
+    try {
+      // Simulated data of students in classes
+      res.json([
+        {
+          id: 5,
+          username: "john.doe",
+          firstName: "John",
+          lastName: "Doe",
+          grade: 5,
+          points: 120,
+          enrollmentId: 1,
+          classId: 1,
+          className: "Math 101"
+        },
+        {
+          id: 6,
+          username: "jane.smith",
+          firstName: "Jane",
+          lastName: "Smith",
+          grade: 5,
+          points: 150,
+          enrollmentId: 2,
+          classId: 1,
+          className: "Math 101"
+        }
+      ]);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      res.status(500).json({ message: "Failed to fetch students" });
+    }
+  });
+  
+  // Create a new class
+  app.post("/api/teacher/classes", requireTeacher, async (req, res) => {
+    try {
+      const user = req.user!;
+      // In the real implementation, validate and create the class
+      // For now, return a simulated response
+      res.json({
+        id: 3,
+        name: req.body.name,
+        description: req.body.description,
+        grade: req.body.grade,
+        subject: req.body.subject,
+        teacherId: user.id,
+        academicYear: req.body.academicYear,
+        startDate: req.body.startDate,
+        endDate: req.body.endDate,
+        classCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+        isActive: true
+      });
+    } catch (error) {
+      console.error("Error creating class:", error);
+      res.status(500).json({ message: "Failed to create class" });
+    }
+  });
+  
+  // Create a new assignment
+  app.post("/api/teacher/assignments", requireTeacher, async (req, res) => {
+    try {
+      const user = req.user!;
+      // Simulated assignment creation response
+      res.json({
+        id: 3,
+        title: req.body.title,
+        description: req.body.description,
+        instructions: req.body.instructions,
+        classId: req.body.classId,
+        teacherId: user.id,
+        lessonId: req.body.lessonId,
+        quizId: req.body.quizId,
+        dueDate: req.body.dueDate,
+        assignedDate: new Date().toISOString(),
+        points: req.body.points || 100,
+        status: "active",
+        resources: req.body.resources,
+        requirements: req.body.requirements
+      });
+    } catch (error) {
+      console.error("Error creating assignment:", error);
+      res.status(500).json({ message: "Failed to create assignment" });
+    }
+  });
+  
+  // Setup the HTTP server
   const httpServer = createServer(app);
   return httpServer;
 }
