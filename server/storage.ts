@@ -118,6 +118,54 @@ export interface IStorage {
   // Chat Message operations
   getChatMessages(userId: number, limit?: number): Promise<ChatMessage[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  
+  // Teacher operations
+  getTeacherByUserId(userId: number): Promise<Teacher | undefined>;
+  createTeacher(teacher: InsertTeacher): Promise<Teacher>;
+  
+  // Class operations
+  getClasses(): Promise<Class[]>;
+  getClassesByTeacher(teacherId: number): Promise<Class[]>;
+  getClassById(id: number): Promise<Class | undefined>;
+  createClass(class_: InsertClass): Promise<Class>;
+  updateClass(id: number, class_: Partial<InsertClass>): Promise<Class | undefined>;
+  
+  // Class enrollment operations
+  getClassEnrollments(classId: number): Promise<ClassEnrollment[]>;
+  getStudentEnrollments(studentId: number): Promise<ClassEnrollment[]>;
+  createClassEnrollment(enrollment: InsertClassEnrollment): Promise<ClassEnrollment>;
+  
+  // Assignment operations
+  getAssignments(): Promise<Assignment[]>;
+  getAssignmentsByTeacher(teacherId: number): Promise<Assignment[]>;
+  getAssignmentsByClass(classId: number): Promise<Assignment[]>;
+  getRecentAssignmentsByTeacher(teacherId: number, limit?: number): Promise<Assignment[]>;
+  getAssignmentById(id: number): Promise<Assignment | undefined>;
+  createAssignment(assignment: InsertAssignment): Promise<Assignment>;
+  updateAssignment(id: number, assignment: Partial<InsertAssignment>): Promise<Assignment | undefined>;
+  
+  // Assignment submission operations
+  getAssignmentSubmissions(assignmentId: number): Promise<AssignmentSubmission[]>;
+  getStudentSubmissions(studentId: number): Promise<AssignmentSubmission[]>;
+  createAssignmentSubmission(submission: InsertAssignmentSubmission): Promise<AssignmentSubmission>;
+  
+  // Lesson plan operations
+  getLessonPlans(): Promise<LessonPlan[]>;
+  getLessonPlansByTeacher(teacherId: number): Promise<LessonPlan[]>;
+  getLessonPlansByClass(classId: number): Promise<LessonPlan[]>;
+  getLessonPlanById(id: number): Promise<LessonPlan | undefined>;
+  createLessonPlan(lessonPlan: InsertLessonPlan): Promise<LessonPlan>;
+  
+  // Analytics operations
+  getAnalyticsByTeacher(teacherId: number, period?: string): Promise<Analytics[]>;
+  createAnalytics(analytics: InsertAnalytics): Promise<Analytics>;
+  getAnalyticsSummary(teacherId: number): Promise<{ totalStudents: number, averageScore: number, completionRate: number }>;
+  
+  // Announcement operations
+  getAnnouncements(): Promise<Announcement[]>;
+  getAnnouncementsByTeacher(teacherId: number): Promise<Announcement[]>;
+  getAnnouncementsByClass(classId: number): Promise<Announcement[]>;
+  createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
 }
 
 export class MemStorage implements IStorage {
@@ -878,6 +926,205 @@ export class DatabaseStorage implements IStorage {
       .values(message)
       .returning();
     return createdMessage;
+  }
+
+  // Teacher operations
+  async getTeacherByUserId(userId: number): Promise<Teacher | undefined> {
+    const [teacher] = await db.select().from(teachers).where(eq(teachers.userId, userId));
+    return teacher || undefined;
+  }
+
+  async createTeacher(teacher: InsertTeacher): Promise<Teacher> {
+    const [createdTeacher] = await db
+      .insert(teachers)
+      .values(teacher)
+      .returning();
+    return createdTeacher;
+  }
+  
+  // Class operations
+  async getClasses(): Promise<Class[]> {
+    return db.select().from(classes);
+  }
+
+  async getClassesByTeacher(teacherId: number): Promise<Class[]> {
+    return db.select().from(classes).where(eq(classes.teacherId, teacherId));
+  }
+
+  async getClassById(id: number): Promise<Class | undefined> {
+    const [class_] = await db.select().from(classes).where(eq(classes.id, id));
+    return class_ || undefined;
+  }
+
+  async createClass(class_: InsertClass): Promise<Class> {
+    const [createdClass] = await db
+      .insert(classes)
+      .values(class_)
+      .returning();
+    return createdClass;
+  }
+
+  async updateClass(id: number, class_: Partial<InsertClass>): Promise<Class | undefined> {
+    const [updatedClass] = await db
+      .update(classes)
+      .set(class_)
+      .where(eq(classes.id, id))
+      .returning();
+    return updatedClass || undefined;
+  }
+  
+  // Class enrollment operations
+  async getClassEnrollments(classId: number): Promise<ClassEnrollment[]> {
+    return db.select().from(classEnrollments).where(eq(classEnrollments.classId, classId));
+  }
+
+  async getStudentEnrollments(studentId: number): Promise<ClassEnrollment[]> {
+    return db.select().from(classEnrollments).where(eq(classEnrollments.studentId, studentId));
+  }
+
+  async createClassEnrollment(enrollment: InsertClassEnrollment): Promise<ClassEnrollment> {
+    const [createdEnrollment] = await db
+      .insert(classEnrollments)
+      .values(enrollment)
+      .returning();
+    return createdEnrollment;
+  }
+  
+  // Assignment operations
+  async getAssignments(): Promise<Assignment[]> {
+    return db.select().from(assignments);
+  }
+
+  async getAssignmentsByTeacher(teacherId: number): Promise<Assignment[]> {
+    return db.select().from(assignments).where(eq(assignments.teacherId, teacherId));
+  }
+
+  async getAssignmentsByClass(classId: number): Promise<Assignment[]> {
+    return db.select().from(assignments).where(eq(assignments.classId, classId));
+  }
+
+  async getRecentAssignmentsByTeacher(teacherId: number, limit: number = 5): Promise<Assignment[]> {
+    return db
+      .select()
+      .from(assignments)
+      .where(eq(assignments.teacherId, teacherId))
+      .orderBy(desc(assignments.assignedDate))
+      .limit(limit);
+  }
+
+  async getAssignmentById(id: number): Promise<Assignment | undefined> {
+    const [assignment] = await db.select().from(assignments).where(eq(assignments.id, id));
+    return assignment || undefined;
+  }
+
+  async createAssignment(assignment: InsertAssignment): Promise<Assignment> {
+    const [createdAssignment] = await db
+      .insert(assignments)
+      .values(assignment)
+      .returning();
+    return createdAssignment;
+  }
+
+  async updateAssignment(id: number, assignment: Partial<InsertAssignment>): Promise<Assignment | undefined> {
+    const [updatedAssignment] = await db
+      .update(assignments)
+      .set(assignment)
+      .where(eq(assignments.id, id))
+      .returning();
+    return updatedAssignment || undefined;
+  }
+  
+  // Assignment submission operations
+  async getAssignmentSubmissions(assignmentId: number): Promise<AssignmentSubmission[]> {
+    return db.select().from(assignmentSubmissions).where(eq(assignmentSubmissions.assignmentId, assignmentId));
+  }
+
+  async getStudentSubmissions(studentId: number): Promise<AssignmentSubmission[]> {
+    return db.select().from(assignmentSubmissions).where(eq(assignmentSubmissions.studentId, studentId));
+  }
+
+  async createAssignmentSubmission(submission: InsertAssignmentSubmission): Promise<AssignmentSubmission> {
+    const [createdSubmission] = await db
+      .insert(assignmentSubmissions)
+      .values(submission)
+      .returning();
+    return createdSubmission;
+  }
+  
+  // Lesson plan operations
+  async getLessonPlans(): Promise<LessonPlan[]> {
+    return db.select().from(lessonPlans);
+  }
+
+  async getLessonPlansByTeacher(teacherId: number): Promise<LessonPlan[]> {
+    return db.select().from(lessonPlans).where(eq(lessonPlans.teacherId, teacherId));
+  }
+
+  async getLessonPlansByClass(classId: number): Promise<LessonPlan[]> {
+    return db.select().from(lessonPlans).where(eq(lessonPlans.classId, classId));
+  }
+
+  async getLessonPlanById(id: number): Promise<LessonPlan | undefined> {
+    const [lessonPlan] = await db.select().from(lessonPlans).where(eq(lessonPlans.id, id));
+    return lessonPlan || undefined;
+  }
+
+  async createLessonPlan(lessonPlan: InsertLessonPlan): Promise<LessonPlan> {
+    const [createdLessonPlan] = await db
+      .insert(lessonPlans)
+      .values(lessonPlan)
+      .returning();
+    return createdLessonPlan;
+  }
+  
+  // Analytics operations
+  async getAnalyticsByTeacher(teacherId: number, period?: string): Promise<Analytics[]> {
+    let query = db.select().from(analytics).where(eq(analytics.teacherId, teacherId));
+    
+    if (period) {
+      query = query.where(eq(analytics.period, period));
+    }
+    
+    return query;
+  }
+
+  async createAnalytics(analytics_: InsertAnalytics): Promise<Analytics> {
+    const [createdAnalytics] = await db
+      .insert(analytics)
+      .values(analytics_)
+      .returning();
+    return createdAnalytics;
+  }
+
+  async getAnalyticsSummary(teacherId: number): Promise<{ totalStudents: number, averageScore: number, completionRate: number }> {
+    // For now, return some default values
+    // In a full implementation, we would compute these from database records
+    return {
+      totalStudents: 42,
+      averageScore: 85.5,
+      completionRate: 78.3
+    };
+  }
+  
+  // Announcement operations
+  async getAnnouncements(): Promise<Announcement[]> {
+    return db.select().from(announcements);
+  }
+
+  async getAnnouncementsByTeacher(teacherId: number): Promise<Announcement[]> {
+    return db.select().from(announcements).where(eq(announcements.teacherId, teacherId));
+  }
+
+  async getAnnouncementsByClass(classId: number): Promise<Announcement[]> {
+    return db.select().from(announcements).where(eq(announcements.classId, classId));
+  }
+
+  async createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement> {
+    const [createdAnnouncement] = await db
+      .insert(announcements)
+      .values(announcement)
+      .returning();
+    return createdAnnouncement;
   }
 }
 
