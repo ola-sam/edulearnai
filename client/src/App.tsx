@@ -59,6 +59,8 @@ function Router() {
       <TeacherRoute path="/teacher/dashboard" component={TeacherDashboard} />
       <TeacherRoute path="/teacher/classes" component={() => import("@/pages/teacher/Classes").then(m => m.default)} />
       <TeacherRoute path="/teacher/lesson-plans" component={() => import("@/pages/teacher/LessonPlans").then(m => m.default)} />
+      <TeacherRoute path="/teacher/assignments" component={() => import("@/pages/teacher/Assignments").then(m => m.default)} />
+      <TeacherRoute path="/teacher/analytics" component={() => import("@/pages/teacher/Analytics").then(m => m.default)} />
       
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
