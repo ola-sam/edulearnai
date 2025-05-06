@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp, date, unique } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -13,6 +13,8 @@ export const users = pgTable("users", {
   grade: integer("grade").notNull(),
   points: integer("points").default(0).notNull(),
   avatarUrl: text("avatar_url"),
+  role: text("role").default("student").notNull(), // "student", "teacher", "admin"
+  isTeacher: boolean("is_teacher").default(false).notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -21,10 +23,37 @@ export const insertUserSchema = createInsertSchema(users).pick({
   firstName: true,
   lastName: true,
   grade: true,
+  role: true,
+  isTeacher: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// Teachers (extends users)
+export const teachers = pgTable("teachers", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  bio: text("bio"),
+  subjects: jsonb("subjects"),
+  grades: jsonb("grades"),
+  credentials: jsonb("credentials"),
+  office_hours: jsonb("office_hours"),
+  avatar_url: text("avatar_url"),
+});
+
+export const insertTeacherSchema = createInsertSchema(teachers).pick({
+  userId: true,
+  bio: true,
+  subjects: true,
+  grades: true,
+  credentials: true,
+  office_hours: true,
+  avatar_url: true,
+});
+
+export type InsertTeacher = z.infer<typeof insertTeacherSchema>;
+export type Teacher = typeof teachers.$inferSelect;
 
 // Subjects
 export const subjects = pgTable("subjects", {
@@ -215,13 +244,248 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 
+// Classes
+export const classes = pgTable("classes", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  teacherId: integer("teacher_id").notNull(),
+  grade: integer("grade").notNull(),
+  subject: text("subject").notNull(),
+  academicYear: text("academic_year").notNull(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  schedule: jsonb("schedule"),
+  classCode: text("class_code").notNull().unique(), // For students to join
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
+export const insertClassSchema = createInsertSchema(classes).pick({
+  name: true,
+  description: true,
+  teacherId: true,
+  grade: true,
+  subject: true,
+  academicYear: true,
+  startDate: true,
+  endDate: true,
+  schedule: true,
+  classCode: true,
+  isActive: true,
+});
+
+export type InsertClass = z.infer<typeof insertClassSchema>;
+export type Class = typeof classes.$inferSelect;
+
+// Class Enrollments (students in classes)
+export const classEnrollments = pgTable("class_enrollments", {
+  id: serial("id").primaryKey(),
+  classId: integer("class_id").notNull(),
+  studentId: integer("student_id").notNull(),
+  enrolledAt: timestamp("enrolled_at").notNull().defaultNow(),
+  status: text("status").default("active").notNull(), // active, suspended, completed
+}, (table) => {
+  return {
+    classStudentUnique: unique("class_student_unique").on(table.classId, table.studentId),
+  };
+});
+
+export const insertClassEnrollmentSchema = createInsertSchema(classEnrollments).pick({
+  classId: true,
+  studentId: true,
+  enrolledAt: true,
+  status: true,
+});
+
+export type InsertClassEnrollment = z.infer<typeof insertClassEnrollmentSchema>;
+export type ClassEnrollment = typeof classEnrollments.$inferSelect;
+
+// Assignments (created by teachers)
+export const assignments = pgTable("assignments", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  instructions: text("instructions").notNull(),
+  classId: integer("class_id").notNull(),
+  teacherId: integer("teacher_id").notNull(),
+  lessonId: integer("lesson_id"), // Optional lesson association
+  quizId: integer("quiz_id"),     // Optional quiz association
+  dueDate: timestamp("due_date").notNull(),
+  assignedDate: timestamp("assigned_date").notNull().defaultNow(),
+  points: integer("points").default(100).notNull(),
+  status: text("status").default("active").notNull(), // draft, active, archived
+  resources: jsonb("resources"),
+  requirements: jsonb("requirements"),
+});
+
+export const insertAssignmentSchema = createInsertSchema(assignments).pick({
+  title: true,
+  description: true,
+  instructions: true,
+  classId: true,
+  teacherId: true,
+  lessonId: true,
+  quizId: true,
+  dueDate: true,
+  assignedDate: true,
+  points: true,
+  status: true,
+  resources: true,
+  requirements: true,
+});
+
+export type InsertAssignment = z.infer<typeof insertAssignmentSchema>;
+export type Assignment = typeof assignments.$inferSelect;
+
+// Assignment Submissions
+export const assignmentSubmissions = pgTable("assignment_submissions", {
+  id: serial("id").primaryKey(),
+  assignmentId: integer("assignment_id").notNull(),
+  studentId: integer("student_id").notNull(),
+  submittedAt: timestamp("submitted_at").notNull().defaultNow(),
+  content: text("content"),
+  attachments: jsonb("attachments"),
+  status: text("status").default("submitted").notNull(), // draft, submitted, resubmitted, late
+  grade: integer("grade"),
+  feedback: text("feedback"),
+  gradedBy: integer("graded_by"),
+  gradedAt: timestamp("graded_at"),
+}, (table) => {
+  return {
+    assignmentStudentUnique: unique("assignment_student_unique").on(table.assignmentId, table.studentId),
+  };
+});
+
+export const insertAssignmentSubmissionSchema = createInsertSchema(assignmentSubmissions).pick({
+  assignmentId: true,
+  studentId: true,
+  submittedAt: true,
+  content: true,
+  attachments: true,
+  status: true,
+  grade: true,
+  feedback: true,
+  gradedBy: true,
+  gradedAt: true,
+});
+
+export type InsertAssignmentSubmission = z.infer<typeof insertAssignmentSubmissionSchema>;
+export type AssignmentSubmission = typeof assignmentSubmissions.$inferSelect;
+
+// Lesson Plans (for teachers)
+export const lessonPlans = pgTable("lesson_plans", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  teacherId: integer("teacher_id").notNull(),
+  classId: integer("class_id").notNull(),
+  subject: text("subject").notNull(),
+  grade: integer("grade").notNull(),
+  objectives: jsonb("objectives").notNull(),
+  materials: jsonb("materials"),
+  procedure: jsonb("procedure").notNull(),
+  assessment: jsonb("assessment"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  status: text("status").default("draft").notNull(), // draft, published, archived
+  duration: integer("duration").notNull(), // in minutes
+  lessonDate: date("lesson_date").notNull(),
+});
+
+export const insertLessonPlanSchema = createInsertSchema(lessonPlans).pick({
+  title: true,
+  description: true,
+  teacherId: true,
+  classId: true,
+  subject: true,
+  grade: true,
+  objectives: true,
+  materials: true,
+  procedure: true,
+  assessment: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+  status: true,
+  duration: true,
+  lessonDate: true,
+});
+
+export type InsertLessonPlan = z.infer<typeof insertLessonPlanSchema>;
+export type LessonPlan = typeof lessonPlans.$inferSelect;
+
+// Performance Analytics (aggregated data)
+export const analytics = pgTable("analytics", {
+  id: serial("id").primaryKey(),
+  classId: integer("class_id").notNull(),
+  teacherId: integer("teacher_id").notNull(),
+  period: text("period").notNull(), // daily, weekly, monthly, quarterly, yearly
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  metrics: jsonb("metrics").notNull(), // completion rates, average scores, engagement, etc.
+  insights: jsonb("insights"), // AI generated insights
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertAnalyticsSchema = createInsertSchema(analytics).pick({
+  classId: true,
+  teacherId: true,
+  period: true,
+  startDate: true,
+  endDate: true,
+  metrics: true,
+  insights: true,
+  createdAt: true,
+});
+
+export type InsertAnalytics = z.infer<typeof insertAnalyticsSchema>;
+export type Analytics = typeof analytics.$inferSelect;
+
+// Announcements
+export const announcements = pgTable("announcements", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  teacherId: integer("teacher_id").notNull(),
+  classId: integer("class_id"), // Optional, if null = school-wide
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  expiresAt: timestamp("expires_at"),
+  priority: text("priority").default("normal").notNull(), // low, normal, high, urgent
+  attachments: jsonb("attachments"),
+});
+
+export const insertAnnouncementSchema = createInsertSchema(announcements).pick({
+  title: true,
+  content: true,
+  teacherId: true,
+  classId: true,
+  createdAt: true,
+  expiresAt: true,
+  priority: true,
+  attachments: true,
+});
+
+export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
+export type Announcement = typeof announcements.$inferSelect;
+
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   progress: many(userProgress),
   quizResults: many(quizResults),
   badges: many(userBadges),
   downloads: many(downloadedContent),
-  chatMessages: many(chatMessages)
+  chatMessages: many(chatMessages),
+  teacher: one(teachers, {
+    fields: [users.id],
+    references: [teachers.userId]
+  }),
+  enrollments: many(classEnrollments, {
+    relationName: "student_enrollments"
+  }),
+  submissions: many(assignmentSubmissions, {
+    relationName: "student_submissions"
+  })
 }));
 
 export const subjectsRelations = relations(subjects, ({ many }) => ({
@@ -301,5 +565,118 @@ export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
   user: one(users, {
     fields: [chatMessages.userId],
     references: [users.id]
+  })
+}));
+
+// Teacher relations
+export const teachersRelations = relations(teachers, ({ one, many }) => ({
+  user: one(users, {
+    fields: [teachers.userId],
+    references: [users.id]
+  }),
+  classes: many(classes),
+  assignments: many(assignments),
+  lessonPlans: many(lessonPlans),
+  announcements: many(announcements),
+  analytics: many(analytics)
+}));
+
+// Class relations
+export const classesRelations = relations(classes, ({ one, many }) => ({
+  teacher: one(users, {
+    fields: [classes.teacherId],
+    references: [users.id]
+  }),
+  enrollments: many(classEnrollments),
+  assignments: many(assignments),
+  lessonPlans: many(lessonPlans),
+  announcements: many(announcements),
+  analytics: many(analytics)
+}));
+
+// Class Enrollment relations
+export const classEnrollmentsRelations = relations(classEnrollments, ({ one }) => ({
+  class: one(classes, {
+    fields: [classEnrollments.classId],
+    references: [classes.id]
+  }),
+  student: one(users, {
+    fields: [classEnrollments.studentId],
+    references: [users.id],
+    relationName: "student_enrollments"
+  })
+}));
+
+// Assignment relations
+export const assignmentsRelations = relations(assignments, ({ one, many }) => ({
+  class: one(classes, {
+    fields: [assignments.classId],
+    references: [classes.id]
+  }),
+  teacher: one(users, {
+    fields: [assignments.teacherId],
+    references: [users.id]
+  }),
+  lesson: one(lessons, {
+    fields: [assignments.lessonId],
+    references: [lessons.id]
+  }),
+  quiz: one(quizzes, {
+    fields: [assignments.quizId],
+    references: [quizzes.id]
+  }),
+  submissions: many(assignmentSubmissions)
+}));
+
+// Assignment Submission relations
+export const assignmentSubmissionsRelations = relations(assignmentSubmissions, ({ one }) => ({
+  assignment: one(assignments, {
+    fields: [assignmentSubmissions.assignmentId],
+    references: [assignments.id]
+  }),
+  student: one(users, {
+    fields: [assignmentSubmissions.studentId],
+    references: [users.id],
+    relationName: "student_submissions"
+  }),
+  gradedByTeacher: one(users, {
+    fields: [assignmentSubmissions.gradedBy],
+    references: [users.id]
+  })
+}));
+
+// Lesson Plan relations
+export const lessonPlansRelations = relations(lessonPlans, ({ one }) => ({
+  teacher: one(users, {
+    fields: [lessonPlans.teacherId],
+    references: [users.id]
+  }),
+  class: one(classes, {
+    fields: [lessonPlans.classId],
+    references: [classes.id]
+  })
+}));
+
+// Analytics relations
+export const analyticsRelations = relations(analytics, ({ one }) => ({
+  class: one(classes, {
+    fields: [analytics.classId],
+    references: [classes.id]
+  }),
+  teacher: one(users, {
+    fields: [analytics.teacherId],
+    references: [users.id]
+  })
+}));
+
+// Announcement relations
+export const announcementsRelations = relations(announcements, ({ one }) => ({
+  teacher: one(users, {
+    fields: [announcements.teacherId],
+    references: [users.id]
+  }),
+  class: one(classes, {
+    fields: [announcements.classId],
+    references: [classes.id]
   })
 }));
