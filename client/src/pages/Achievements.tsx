@@ -20,24 +20,53 @@ type BadgeWithProgress = {
 
 const BadgeCard = ({ badge }: { badge: BadgeWithProgress }) => {
   const isEarned = badge.earned;
-  const bgColorClass = isEarned ? `bg-${badge.color.replace('#', '')}-100` : 'bg-gray-100';
-  const textColorClass = isEarned ? `text-${badge.color.replace('#', '')}-600` : 'text-gray-400';
-  const badgeIconClass = isEarned ? badge.icon : 'lock';
-  const glowClass = isEarned ? 'badge-glow' : '';
+  
+  // Map color names to Tailwind classes
+  const colorMap: Record<string, { bg: string, text: string, glow: string }> = {
+    'primary': { bg: 'bg-primary-100', text: 'text-primary-600', glow: 'badge-glow-primary' },
+    'emerald': { bg: 'bg-emerald-100', text: 'text-emerald-600', glow: 'badge-glow-emerald' },
+    'amber': { bg: 'bg-amber-100', text: 'text-amber-600', glow: 'badge-glow-amber' },
+    'cyan': { bg: 'bg-cyan-100', text: 'text-cyan-600', glow: 'badge-glow-cyan' },
+    'purple': { bg: 'bg-purple-100', text: 'text-purple-600', glow: 'badge-glow-purple' }
+  };
+  
+  // Get color classes based on badge color
+  const colors = colorMap[badge.color] || { bg: 'bg-primary-100', text: 'text-primary-600', glow: 'badge-glow-primary' };
+  
+  const bgColorClass = isEarned ? colors.bg : 'bg-gray-100';
+  const textColorClass = isEarned ? colors.text : 'text-gray-400';
+  const badgeIconClass = badge.icon;
+  const glowClass = isEarned ? `badge-glow ${colors.glow}` : '';
+  
+  // Get a sparkle effect for earned badges
+  const earnedDecoration = isEarned ? (
+    <div className="absolute -top-1 -right-1 text-yellow-400 transform rotate-12">
+      <span className="material-icons text-sm">auto_awesome</span>
+    </div>
+  ) : null;
   
   return (
-    <Card>
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md">
       <CardContent className="p-6">
         <div className="flex flex-col items-center text-center">
-          <div 
-            className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ${bgColorClass} ${glowClass}`}
-          >
-            <span className={`material-icons text-3xl ${textColorClass}`}>
-              {badgeIconClass}
-            </span>
+          <div className="relative mb-4">
+            <div 
+              className={`w-20 h-20 rounded-full flex items-center justify-center ${bgColorClass} ${glowClass} 
+                relative transition-all duration-300 ${isEarned ? 'scale-105' : 'hover:scale-105'}`}
+            >
+              <span className={`material-icons text-3xl ${textColorClass}`}>
+                {badgeIconClass}
+              </span>
+              {isEarned && (
+                <span className="absolute bottom-0 right-0 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-white">
+                  <span className="material-icons text-xs">check</span>
+                </span>
+              )}
+            </div>
+            {earnedDecoration}
           </div>
           
-          <h3 className={`font-nunito font-semibold text-lg mb-1 ${isEarned ? 'text-gray-800' : 'text-gray-400'}`}>
+          <h3 className={`font-nunito font-semibold text-lg mb-1 ${isEarned ? 'text-gray-800' : 'text-gray-500'}`}>
             {badge.name}
           </h3>
           
@@ -46,27 +75,33 @@ const BadgeCard = ({ badge }: { badge: BadgeWithProgress }) => {
           </p>
           
           {isEarned ? (
-            <Badge variant="success" className="mb-2">
-              Earned {formatDate(new Date(badge.dateEarned || ''))}
+            <Badge variant="success" className="mb-2 px-3 py-1 flex items-center gap-1">
+              <span className="material-icons text-xs">verified</span>
+              <span>Earned {formatDate(new Date(badge.dateEarned || ''))}</span>
             </Badge>
           ) : (
             <>
               <div className="w-full mb-2">
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-gray-500">Progress</span>
-                  <span className="font-medium text-gray-500">{badge.progress}%</span>
+                  <span className="text-gray-500 flex items-center">
+                    <span className="material-icons text-xs mr-1">trending_up</span>
+                    Progress
+                  </span>
+                  <span className="font-medium text-gray-700">{badge.progress}%</span>
                 </div>
-                <Progress value={badge.progress} />
+                <Progress value={badge.progress} className="h-2" />
               </div>
               
-              <div className="text-xs text-gray-500">
-                <span className="material-icons text-xs align-middle mr-1">info</span>
+              <div className="text-xs text-gray-600 p-2 bg-gray-50 rounded-md">
+                <span className="material-icons text-xs align-middle mr-1 text-amber-500">tips_and_updates</span>
                 {badge.criteria.lessonCount 
                   ? `Complete ${badge.criteria.lessonCount} ${badge.criteria.subject} lessons` 
                   : badge.criteria.perfectScoreStreak 
                   ? `Get perfect scores on ${badge.criteria.perfectScoreStreak} consecutive quizzes` 
                   : badge.criteria.completeAll
                   ? `Complete all ${badge.criteria.subject} lessons in your grade`
+                  : badge.criteria.multiSubject
+                  ? `Complete ${badge.criteria.lessonCount} lessons across different subjects`
                   : 'Complete specific tasks to earn this badge'}
               </div>
             </>
@@ -80,32 +115,32 @@ const BadgeCard = ({ badge }: { badge: BadgeWithProgress }) => {
 const Achievements = () => {
   const { user } = useAuth();
   
-  const { data: badges, isLoading: badgesLoading } = useQuery({
+  const { data: badges = [], isLoading: badgesLoading } = useQuery<any[]>({
     queryKey: ['/api/badges'],
     enabled: !!user,
   });
   
-  const { data: userBadges, isLoading: userBadgesLoading } = useQuery({
+  const { data: userBadges = [], isLoading: userBadgesLoading } = useQuery<any[]>({
     queryKey: [`/api/users/${user?.id}/badges`],
     enabled: !!user,
   });
   
-  const { data: userProgress } = useQuery({
+  const { data: userProgress = [] } = useQuery<any[]>({
     queryKey: [`/api/users/${user?.id}/progress`],
     enabled: !!user,
   });
   
-  const { data: quizResults } = useQuery({
+  const { data: quizResults = [] } = useQuery<any[]>({
     queryKey: [`/api/users/${user?.id}/quiz-results`],
     enabled: !!user,
   });
   
-  const { data: lessons } = useQuery({
+  const { data: lessons = [] } = useQuery<any[]>({
     queryKey: ['/api/lessons'],
     enabled: !!user,
   });
   
-  const { data: subjects } = useQuery({
+  const { data: subjects = [] } = useQuery<any[]>({
     queryKey: ['/api/subjects'],
     enabled: !!user,
   });
@@ -195,25 +230,36 @@ const Achievements = () => {
         <p className="text-gray-600">Track your learning achievements and earn badges as you progress</p>
       </div>
       
-      <div className="mb-6 bg-white p-6 rounded-xl shadow-sm">
-        <div className="flex items-center">
-          <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mr-4">
-            <span className="material-icons text-primary-600 text-2xl">emoji_events</span>
+      <div className="mb-6 bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+        <div className="flex flex-col sm:flex-row items-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-primary-50 to-primary-100 rounded-full 
+            flex items-center justify-center mb-4 sm:mb-0 sm:mr-6 shadow-md relative">
+            <span className="material-icons text-primary-600 text-3xl animate-pulse">emoji_events</span>
+            <div className="absolute inset-0 rounded-full bg-primary-500 opacity-10 animate-ping-slow"></div>
           </div>
-          <div>
-            <h2 className="font-nunito font-semibold text-lg text-gray-800">Your Achievement Stats</h2>
-            <div className="mt-2 grid grid-cols-3 gap-4">
-              <div>
-                <p className="text-sm text-gray-500">Badges Earned</p>
-                <p className="font-nunito font-bold text-2xl text-primary-600">{earnedBadges.length}</p>
+          <div className="text-center sm:text-left">
+            <h2 className="font-nunito font-semibold text-xl text-gray-800">Your Achievement Stats</h2>
+            <div className="mt-4 grid grid-cols-3 gap-6">
+              <div className="bg-gradient-to-br from-primary-50 to-primary-100 p-3 rounded-lg shadow-sm">
+                <div className="flex items-center justify-center sm:justify-start mb-1">
+                  <span className="material-icons text-primary-500 mr-1">military_tech</span>
+                  <p className="text-xs font-medium text-primary-700">Earned</p>
+                </div>
+                <p className="font-nunito font-bold text-2xl text-primary-700 text-center">{earnedBadges.length}</p>
               </div>
-              <div>
-                <p className="text-sm text-gray-500">In Progress</p>
-                <p className="font-nunito font-bold text-2xl text-warning-500">{unearnedBadges.length}</p>
+              <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-3 rounded-lg shadow-sm">
+                <div className="flex items-center justify-center sm:justify-start mb-1">
+                  <span className="material-icons text-amber-500 mr-1">pending</span>
+                  <p className="text-xs font-medium text-amber-700">In Progress</p>
+                </div>
+                <p className="font-nunito font-bold text-2xl text-amber-700 text-center">{unearnedBadges.length}</p>
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Completion</p>
-                <p className="font-nunito font-bold text-2xl text-success-500">
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-3 rounded-lg shadow-sm">
+                <div className="flex items-center justify-center sm:justify-start mb-1">
+                  <span className="material-icons text-emerald-500 mr-1">percent</span>
+                  <p className="text-xs font-medium text-emerald-700">Complete</p>
+                </div>
+                <p className="font-nunito font-bold text-2xl text-emerald-700 text-center">
                   {badgesWithProgress.length > 0 
                     ? Math.round((earnedBadges.length / badgesWithProgress.length) * 100) 
                     : 0}%
