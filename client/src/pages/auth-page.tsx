@@ -25,6 +25,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const loginSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
@@ -35,6 +36,8 @@ const registerSchema = insertUserSchema
   .extend({
     password: z.string().min(6, 'Password must be at least 6 characters'),
     confirmPassword: z.string(),
+    isTeacher: z.boolean().default(false),
+    role: z.string().default('student'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
@@ -69,6 +72,8 @@ const AuthPage = () => {
       grade: 5,
       password: '',
       confirmPassword: '',
+      isTeacher: false,
+      role: 'student',
     },
   });
   

@@ -28,6 +28,8 @@ type RegisterData = {
   firstName: string;
   lastName: string;
   grade: number;
+  isTeacher: boolean;
+  role: string;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
