@@ -866,11 +866,18 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
-    const [message] = await db
+    // Ensure timestamp and subject are properly set before insertion
+    const message = {
+      ...insertMessage,
+      timestamp: insertMessage.timestamp || new Date(),
+      subject: insertMessage.subject || null
+    };
+    
+    const [createdMessage] = await db
       .insert(chatMessages)
-      .values(insertMessage)
+      .values(message)
       .returning();
-    return message;
+    return createdMessage;
   }
 }
 
