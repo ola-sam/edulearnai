@@ -64,7 +64,7 @@ const Quizzes = () => {
   const { user } = useAuth();
   const { completeQuiz } = useLearning();
   const [showQuiz, setShowQuiz] = useState(false);
-  const [activeQuiz, setActiveQuiz] = useState<any>(null);
+  const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<QuizAnswer[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -93,39 +93,39 @@ const Quizzes = () => {
   });
 
   // Get subject name by id
-  const getSubjectByLessonId = (lessonId: number) => {
-    if (!lessons || !subjects) return { name: '', color: '', icon: '' };
+  const getSubjectByLessonId = (lessonId: number): Subject => {
+    if (!lessons || !subjects) return { id: 0, name: '', color: '', icon: '' };
     
-    const lesson = lessons.find((l: any) => l.id === lessonId);
-    if (!lesson) return { name: '', color: '', icon: '' };
+    const lesson = lessons.find((l: Lesson) => l.id === lessonId);
+    if (!lesson) return { id: 0, name: '', color: '', icon: '' };
     
-    const subject = subjects.find((s: any) => s.id === lesson.subjectId);
-    if (!subject) return { name: '', color: '', icon: '' };
+    const subject = subjects.find((s: Subject) => s.id === lesson.subjectId);
+    if (!subject) return { id: 0, name: '', color: '', icon: '' };
     
     return subject;
   };
 
   // Get lesson title by id
-  const getLessonTitle = (lessonId: number) => {
+  const getLessonTitle = (lessonId: number): string => {
     if (!lessons) return '';
-    const lesson = lessons.find((l: any) => l.id === lessonId);
+    const lesson = lessons.find((l: Lesson) => l.id === lessonId);
     return lesson?.title || '';
   };
 
   // Check if a quiz has been completed
-  const isQuizCompleted = (quizId: number) => {
+  const isQuizCompleted = (quizId: number): boolean => {
     if (!quizResults) return false;
-    return quizResults.some((result: any) => result.quizId === quizId);
+    return quizResults.some((result: QuizResult) => result.quizId === quizId);
   };
 
   // Get quiz result by quiz id
-  const getQuizResult = (quizId: number) => {
+  const getQuizResult = (quizId: number): QuizResult | null => {
     if (!quizResults) return null;
-    return quizResults.find((result: any) => result.quizId === quizId);
+    return quizResults.find((result: QuizResult) => result.quizId === quizId) || null;
   };
 
   // Handle starting a quiz
-  const handleStartQuiz = (quiz: any) => {
+  const handleStartQuiz = (quiz: Quiz) => {
     setActiveQuiz(quiz);
     setCurrentQuestionIndex(0);
     setQuizAnswers([]);
@@ -239,14 +239,14 @@ const Quizzes = () => {
   }
 
   // Filter quizzes by user's grade and then separate into completed and available
-  const gradeAppropriateQuizzes = quizzes?.filter((quiz: any) => {
+  const gradeAppropriateQuizzes = quizzes?.filter((quiz: Quiz) => {
     if (!lessons) return false;
-    const lesson = lessons.find((l: any) => l.id === quiz.lessonId);
+    const lesson = lessons.find((l: Lesson) => l.id === quiz.lessonId);
     return lesson && lesson.grade === user?.grade;
   }) || [];
   
-  const completedQuizzes = gradeAppropriateQuizzes.filter((quiz: any) => isQuizCompleted(quiz.id)) || [];
-  const availableQuizzes = gradeAppropriateQuizzes.filter((quiz: any) => !isQuizCompleted(quiz.id)) || [];
+  const completedQuizzes = gradeAppropriateQuizzes.filter((quiz: Quiz) => isQuizCompleted(quiz.id)) || [];
+  const availableQuizzes = gradeAppropriateQuizzes.filter((quiz: Quiz) => !isQuizCompleted(quiz.id)) || [];
 
   return (
     <div className="py-6 px-4 sm:px-6 lg:px-8">
@@ -277,7 +277,7 @@ const Quizzes = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {availableQuizzes.map((quiz: any) => {
+              {availableQuizzes.map((quiz: Quiz) => {
                 const subject = getSubjectByLessonId(quiz.lessonId);
                 const badgeVariant = getSubjectBadgeVariant(subject.name);
                 const buttonVariant = getSubjectButtonVariant(subject.name);
@@ -335,7 +335,7 @@ const Quizzes = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {completedQuizzes.map((quiz: any) => {
+              {completedQuizzes.map((quiz: Quiz) => {
                 const subject = getSubjectByLessonId(quiz.lessonId);
                 const badgeVariant = getSubjectBadgeVariant(subject.name);
                 const buttonVariant = getSubjectButtonVariant(subject.name);
@@ -445,7 +445,7 @@ const Quizzes = () => {
                         handleSelectAnswer(activeQuiz.questions[currentQuestionIndex].id, value)
                       }
                     >
-                      {activeQuiz.questions[currentQuestionIndex].options.map((option: any) => (
+                      {activeQuiz.questions[currentQuestionIndex].options.map((option: {id: string; text: string}) => (
                         <div key={option.id} className="flex items-center space-x-2 mb-4 p-3 border rounded-lg hover:bg-gray-50">
                           <RadioGroupItem value={option.id} id={option.id} />
                           <Label htmlFor={option.id} className="flex-1 cursor-pointer">{option.text}</Label>
