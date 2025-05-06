@@ -14,30 +14,54 @@ type NavItemProps = {
   active: boolean;
 };
 
-const NavItem = ({ href, icon, label, active }: NavItemProps) => (
-  <Link href={href}>
-    <a
-      className={`flex items-center px-3 py-3 text-sm font-medium rounded-lg relative transition-all duration-200 
-        ${active
-          ? 'bg-primary-100 text-primary-700 shadow-sm border-l-4 border-primary-500 pl-2'
-          : 'text-gray-700 hover:bg-gray-100 hover:border-l-4 hover:border-gray-200 hover:pl-2'
-        }`}
-    >
-      <div className={`flex items-center ${active ? 'transform scale-105' : ''}`}>
-        <span className={`material-icons mr-3 ${active ? 'text-primary-600' : 'text-gray-500'}`}>
-          {icon}
-        </span>
-        {label}
-      </div>
-      {active && (
-        <span className="absolute right-2 top-1/2 -translate-y-1/2 flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
-        </span>
-      )}
-    </a>
-  </Link>
-);
+const NavItem = ({ href, icon, label, active }: NavItemProps) => {
+  // Color mapping for each navigation item
+  const getNavColors = (path: string) => {
+    switch (path) {
+      case '/':
+        return { bg: 'bg-blue-100', border: 'border-blue-500', text: 'text-blue-700', icon: 'text-blue-600', dot: 'bg-blue-500', ping: 'bg-blue-400' };
+      case '/lessons':
+        return { bg: 'bg-green-100', border: 'border-green-500', text: 'text-green-700', icon: 'text-green-600', dot: 'bg-green-500', ping: 'bg-green-400' };
+      case '/quizzes':
+        return { bg: 'bg-amber-100', border: 'border-amber-500', text: 'text-amber-700', icon: 'text-amber-600', dot: 'bg-amber-500', ping: 'bg-amber-400' };
+      case '/achievements':
+        return { bg: 'bg-purple-100', border: 'border-purple-500', text: 'text-purple-700', icon: 'text-purple-600', dot: 'bg-purple-500', ping: 'bg-purple-400' };
+      case '/leaderboard':
+        return { bg: 'bg-rose-100', border: 'border-rose-500', text: 'text-rose-700', icon: 'text-rose-600', dot: 'bg-rose-500', ping: 'bg-rose-400' };
+      case '/downloads':
+        return { bg: 'bg-teal-100', border: 'border-teal-500', text: 'text-teal-700', icon: 'text-teal-600', dot: 'bg-teal-500', ping: 'bg-teal-400' };
+      default:
+        return { bg: 'bg-primary-100', border: 'border-primary-500', text: 'text-primary-700', icon: 'text-primary-600', dot: 'bg-primary-500', ping: 'bg-primary-400' };
+    }
+  };
+
+  const colors = getNavColors(href);
+
+  return (
+    <Link href={href}>
+      <a
+        className={`group flex items-center px-3 py-3 text-sm font-medium rounded-lg relative transition-all duration-200 
+          ${active
+            ? `${colors.bg} ${colors.text} shadow-sm border-l-4 ${colors.border} pl-2`
+            : `text-gray-700 hover:bg-opacity-50 hover:${colors.bg} hover:${colors.text} hover:border-l-4 hover:${colors.border} hover:pl-2`
+          }`}
+      >
+        <div className={`flex items-center ${active ? 'transform scale-105' : ''}`}>
+          <span className={`material-icons mr-3 transition-all duration-300 group-hover:${colors.icon} ${active ? colors.icon : 'text-gray-500'}`}>
+            {icon}
+          </span>
+          <span className="transition-all duration-300">{label}</span>
+        </div>
+        {active && (
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 flex h-2 w-2">
+            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${colors.ping} opacity-75`}></span>
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${colors.dot}`}></span>
+          </span>
+        )}
+      </a>
+    </Link>
+  );
+};
 
 const Sidebar = () => {
   const { user, logoutMutation } = useAuth();
