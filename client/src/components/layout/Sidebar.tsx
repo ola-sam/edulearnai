@@ -79,6 +79,10 @@ const Sidebar = () => {
   // Define teacher-specific navigation items
   const teacherNavItems = [
     { href: '/teacher/dashboard', icon: 'space_dashboard', label: 'Teacher Dashboard' },
+    { href: '/teacher/classes', icon: 'groups', label: 'My Classes' },
+    { href: '/teacher/lesson-plans', icon: 'auto_stories', label: 'Lesson Plans' },
+    { href: '/teacher/assignments', icon: 'assignment', label: 'Assignments' },
+    { href: '/teacher/analytics', icon: 'analytics', label: 'Analytics' },
     { href: '/dashboard', icon: 'school', label: 'Student View' },
   ];
   
@@ -159,8 +163,19 @@ const Sidebar = () => {
                   {user.firstName} {user.lastName}
                 </p>
                 <div className="flex items-center mt-1">
-                  <span className="material-icons text-purple-500 text-xs mr-1">school</span>
-                  <p className="text-xs font-medium text-purple-600">Grade {user.grade}</p>
+                  <span className="material-icons text-purple-500 text-xs mr-1">
+                    {user.isTeacher ? 'person' : 'school'}
+                  </span>
+                  <div className="flex items-center">
+                    <p className="text-xs font-medium text-purple-600">
+                      {user.isTeacher ? 'Teacher' : `Grade ${user.grade}`}
+                    </p>
+                    {user.isTeacher && (
+                      <span className="inline-flex ml-2 items-center rounded-md bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800">
+                        Teacher
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

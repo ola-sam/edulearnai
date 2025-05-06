@@ -107,7 +107,10 @@ const AuthPage = () => {
     // Remove confirmPassword as it's not part of the API schema
     const { confirmPassword, ...userData } = values;
     
-    registerMutation.mutate(userData, {
+    // Ensure isTeacher and role are properly set
+    userData.isTeacher = userData.role === 'teacher';
+    
+    registerMutation.mutate(userData as any, {
       onSuccess: () => {
         toast({
           title: 'Registration successful',
@@ -284,6 +287,45 @@ const AuthPage = () => {
                           <FormLabel>Confirm Password</FormLabel>
                           <FormControl>
                             <Input type="password" placeholder="Confirm your password" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={registerForm.control}
+                      name="role"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>I am registering as</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                // Update isTeacher based on the selected role
+                                registerForm.setValue('isTeacher', value === 'teacher');
+                              }}
+                              defaultValue={field.value}
+                              className="flex flex-col space-y-1"
+                            >
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="student" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  Student
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="teacher" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  Teacher
+                                </FormLabel>
+                              </FormItem>
+                            </RadioGroup>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
