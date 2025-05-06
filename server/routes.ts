@@ -613,14 +613,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return map;
           }, {} as Record<number, string>);
           
+          // Create the sample assignment with appropriate date formats
           await storage.createAssignment({
             title: "Multiplication Tables Quiz",
             description: "Complete the multiplication tables quiz",
             instructions: "Answer all questions in the quiz",
             classId: classIds[0],
             teacherId: user.id,
-            dueDate: new Date("2025-09-15"),
-            assignedDate: new Date("2025-09-01"),
+            dueDate: new Date("2025-09-15T00:00:00.000Z"),
+            assignedDate: new Date("2025-09-01T00:00:00.000Z"),
             points: 100,
             status: "active"
           });
@@ -632,8 +633,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               instructions: "Label all the parts of the cell diagram",
               classId: classIds[1],
               teacherId: user.id,
-              dueDate: new Date("2025-09-20"),
-              assignedDate: new Date("2025-09-05"),
+              dueDate: new Date("2025-09-20T00:00:00.000Z"),
+              assignedDate: new Date("2025-09-05T00:00:00.000Z"),
               points: 100,
               status: "active"
             });
@@ -675,31 +676,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all students in a teacher's classes
   app.get("/api/teacher/students", requireTeacher, async (req, res) => {
     try {
-      // Simulated data of students in classes
-      res.json([
-        {
-          id: 5,
-          username: "john.doe",
-          firstName: "John",
-          lastName: "Doe",
-          grade: 5,
-          points: 120,
-          enrollmentId: 1,
-          classId: 1,
-          className: "Math 101"
-        },
-        {
-          id: 6,
-          username: "jane.smith",
-          firstName: "Jane",
-          lastName: "Smith",
-          grade: 5,
-          points: 150,
-          enrollmentId: 2,
-          classId: 1,
-          className: "Math 101"
+      const user = req.user!;
+      
+      // Get all classes for this teacher
+      const teacherClasses = await storage.getClassesByTeacher(user.id);
+      
+      if (teacherClasses.length === 0) {
+        return res.json([]);
+      }
+      
+      // Get all enrollments for these classes
+      const classEnrollmentPromises = teacherClasses.map(cls => 
+        storage.getClassEnrollments(cls.id)
+      );
+      
+      const classEnrollments = await Promise.all(classEnrollmentPromises);
+      
+      // Flatten enrollments array
+      const allEnrollments = classEnrollments.flat();
+      
+      if (allEnrollments.length === 0) {
+        // If there are no enrollments, create sample enrollments for demo purposes
+        const firstClass = teacherClasses[0];
+        
+        // Create demo student accounts if needed
+        let john = await storage.getUserByUsername("john.doe");
+        if (!john) {
+          john = await storage.createUser({
+            username: "john.doe",
+            password: "password123", // In a real app, this would be properly hashed
+            firstName: "John",
+            lastName: "Doe",
+            grade: 5,
+            role: "student",
+            isTeacher: false
+          });
         }
-      ]);
+        
+        let jane = await storage.getUserByUsername("jane.smith");
+        if (!jane) {
+          jane = await storage.createUser({
+            username: "jane.smith",
+            password: "password123", // In a real app, this would be properly hashed
+            firstName: "Jane",
+            lastName: "Smith",
+            grade: 5,
+            role: "student",
+            isTeacher: false
+          });
+        }
+        
+        // Enroll the students in the first class
+        await storage.createClassEnrollment({
+          classId: firstClass.id,
+          studentId: john.id,
+          enrolledAt: new Date(),
+          status: "active"
+        });
+        
+        await storage.createClassEnrollment({
+          classId: firstClass.id,
+          studentId: jane.id,
+          enrolledAt: new Date(),
+          status: "active"
+        });
+        
+        // Fetch the newly created enrollments
+        const updatedEnrollments = await storage.getClassEnrollments(firstClass.id);
+        allEnrollments.push(...updatedEnrollments);
+      }
+      
+      // Create a map to store class names by id for easier lookup
+      const classNameMap = teacherClasses.reduce((map, cls) => {
+        map[cls.id] = cls.name;
+        return map;
+      }, {} as Record<number, string>);
+      
+      // Get student details for each enrollment
+      const studentDetailsPromises = allEnrollments.map(async enrollment => {
+        const student = await storage.getUser(enrollment.studentId);
+        if (!student) return null;
+        
+        return {
+          id: student.id,
+          username: student.username,
+          firstName: student.firstName,
+          lastName: student.lastName,
+          grade: student.grade,
+          points: student.points,
+          enrollmentId: enrollment.id,
+          classId: enrollment.classId,
+          className: classNameMap[enrollment.classId] || 'Unknown Class'
+        };
+      });
+      
+      const studentDetails = (await Promise.all(studentDetailsPromises)).filter(Boolean);
+      
+      res.json(studentDetails);
     } catch (error) {
       console.error("Error fetching students:", error);
       res.status(500).json({ message: "Failed to fetch students" });
@@ -710,10 +783,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/teacher/classes", requireTeacher, async (req, res) => {
     try {
       const user = req.user!;
-      // In the real implementation, validate and create the class
-      // For now, return a simulated response
-      res.json({
-        id: 3,
+      
+      // Generate a random class code
+      const classCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      
+      // Create the class in the database
+      const newClass = await storage.createClass({
         name: req.body.name,
         description: req.body.description,
         grade: req.body.grade,
@@ -722,9 +797,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         academicYear: req.body.academicYear,
         startDate: req.body.startDate,
         endDate: req.body.endDate,
-        classCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+        classCode: classCode,
         isActive: true
       });
+      
+      res.json(newClass);
     } catch (error) {
       console.error("Error creating class:", error);
       res.status(500).json({ message: "Failed to create class" });
@@ -735,23 +812,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/teacher/assignments", requireTeacher, async (req, res) => {
     try {
       const user = req.user!;
-      // Simulated assignment creation response
-      res.json({
-        id: 3,
+      
+      // Create the assignment in the database
+      const newAssignment = await storage.createAssignment({
         title: req.body.title,
         description: req.body.description,
         instructions: req.body.instructions,
         classId: req.body.classId,
         teacherId: user.id,
-        lessonId: req.body.lessonId,
-        quizId: req.body.quizId,
-        dueDate: req.body.dueDate,
-        assignedDate: new Date().toISOString(),
+        lessonId: req.body.lessonId || null,
+        quizId: req.body.quizId || null,
+        dueDate: new Date(req.body.dueDate),
+        assignedDate: new Date(), // Current date
         points: req.body.points || 100,
         status: "active",
-        resources: req.body.resources,
-        requirements: req.body.requirements
+        resources: req.body.resources || null,
+        requirements: req.body.requirements || null
       });
+      
+      res.json(newAssignment);
     } catch (error) {
       console.error("Error creating assignment:", error);
       res.status(500).json({ message: "Failed to create assignment" });
