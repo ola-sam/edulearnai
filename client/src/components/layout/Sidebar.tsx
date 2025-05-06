@@ -15,35 +15,23 @@ type NavItemProps = {
 };
 
 const NavItem = ({ href, icon, label, active }: NavItemProps) => {
-  // Color mapping for each navigation item
-  const getNavColors = (path: string) => {
-    switch (path) {
-      case '/':
-        return { bg: 'bg-blue-100', border: 'border-blue-500', text: 'text-blue-700', icon: 'text-blue-600', dot: 'bg-blue-500', ping: 'bg-blue-400' };
-      case '/lessons':
-        return { bg: 'bg-green-100', border: 'border-green-500', text: 'text-green-700', icon: 'text-green-600', dot: 'bg-green-500', ping: 'bg-green-400' };
-      case '/quizzes':
-        return { bg: 'bg-amber-100', border: 'border-amber-500', text: 'text-amber-700', icon: 'text-amber-600', dot: 'bg-amber-500', ping: 'bg-amber-400' };
-      case '/achievements':
-        return { bg: 'bg-purple-100', border: 'border-purple-500', text: 'text-purple-700', icon: 'text-purple-600', dot: 'bg-purple-500', ping: 'bg-purple-400' };
-      case '/leaderboard':
-        return { bg: 'bg-rose-100', border: 'border-rose-500', text: 'text-rose-700', icon: 'text-rose-600', dot: 'bg-rose-500', ping: 'bg-rose-400' };
-      case '/downloads':
-        return { bg: 'bg-teal-100', border: 'border-teal-500', text: 'text-teal-700', icon: 'text-teal-600', dot: 'bg-teal-500', ping: 'bg-teal-400' };
-      default:
-        return { bg: 'bg-primary-100', border: 'border-primary-500', text: 'text-primary-700', icon: 'text-primary-600', dot: 'bg-primary-500', ping: 'bg-primary-400' };
-    }
+  // Consistent purple color scheme for all navigation items
+  const colors = {
+    bg: 'bg-purple-100',
+    border: 'border-purple-500',
+    text: 'text-purple-700',
+    icon: 'text-purple-600',
+    dot: 'bg-purple-500',
+    ping: 'bg-purple-400'
   };
-
-  const colors = getNavColors(href);
 
   return (
     <Link href={href}>
       <a
         className={`group flex items-center px-3 py-3 text-sm font-medium rounded-lg relative transition-all duration-200 
           ${active
-            ? `${colors.bg} ${colors.text} shadow-sm border-l-4 ${colors.border} pl-2`
-            : `text-gray-700 hover:bg-opacity-50 hover:${colors.bg} hover:${colors.text} hover:border-l-4 hover:${colors.border} hover:pl-2`
+            ? `${colors.bg} ${colors.text} shadow-sm border-l-4 ${colors.border} pl-2 font-semibold`
+            : `text-gray-700 hover:bg-opacity-70 hover:${colors.bg} hover:${colors.text} hover:border-l-4 hover:${colors.border} hover:pl-2`
           }`}
       >
         <div className={`flex items-center ${active ? 'transform scale-105' : ''}`}>
@@ -159,8 +147,8 @@ const Sidebar = () => {
                   {user.firstName} {user.lastName}
                 </p>
                 <div className="flex items-center mt-1">
-                  <span className="material-icons text-amber-500 text-xs mr-1">school</span>
-                  <p className="text-xs font-medium text-gray-600">Grade {user.grade}</p>
+                  <span className="material-icons text-purple-500 text-xs mr-1">school</span>
+                  <p className="text-xs font-medium text-purple-600">Grade {user.grade}</p>
                 </div>
               </div>
             </div>
@@ -194,15 +182,15 @@ const Sidebar = () => {
               <span className="flex h-3 w-3 relative">
                 {isOnline ? (
                   <>
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-success-500"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-500"></span>
                   </>
                 ) : (
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-gray-500"></span>
                 )}
               </span>
               <span className={`text-sm font-medium ${
-                isOnline ? 'text-success-600' : 'text-gray-600'
+                isOnline ? 'text-purple-600' : 'text-gray-600'
               }`}>
                 {isOnline ? 'Online' : 'Offline'}
               </span>
@@ -212,7 +200,7 @@ const Sidebar = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="w-full flex items-center shadow-sm hover:bg-red-50 hover:text-red-600 transition-colors" 
+                className="w-full flex items-center shadow-sm hover:bg-purple-50 hover:text-purple-600 transition-colors border-gray-200" 
                 onClick={() => logoutMutation.mutate()}
                 disabled={logoutMutation.isPending}
               >
