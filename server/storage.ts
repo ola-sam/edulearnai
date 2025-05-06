@@ -9,6 +9,14 @@ import {
   userBadges,
   downloadedContent,
   chatMessages,
+  teachers,
+  classes,
+  classEnrollments,
+  assignments,
+  assignmentSubmissions,
+  lessonPlans,
+  analytics,
+  announcements,
   type User,
   type InsertUser,
   type Subject,
@@ -28,7 +36,23 @@ import {
   type DownloadedContent,
   type InsertDownloadedContent,
   type ChatMessage,
-  type InsertChatMessage
+  type InsertChatMessage,
+  type Teacher,
+  type InsertTeacher,
+  type Class,
+  type InsertClass,
+  type ClassEnrollment,
+  type InsertClassEnrollment,
+  type Assignment,
+  type InsertAssignment,
+  type AssignmentSubmission,
+  type InsertAssignmentSubmission,
+  type LessonPlan,
+  type InsertLessonPlan,
+  type Analytics,
+  type InsertAnalytics,
+  type Announcement,
+  type InsertAnnouncement
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -366,7 +390,14 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id, points: 0, avatarUrl: null };
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      points: 0, 
+      avatarUrl: null,
+      role: insertUser.role || 'student',
+      isTeacher: insertUser.isTeacher || false
+    };
     this.users.set(id, user);
     return user;
   }
@@ -391,7 +422,11 @@ export class MemStorage implements IStorage {
   
   async createSubject(insertSubject: InsertSubject): Promise<Subject> {
     const id = this.currentSubjectId++;
-    const subject: Subject = { ...insertSubject, id };
+    const subject: Subject = { 
+      ...insertSubject, 
+      id,
+      color: insertSubject.color || "#3B82F6" // Default color if not provided
+    };
     this.subjects.set(id, subject);
     return subject;
   }
@@ -419,7 +454,12 @@ export class MemStorage implements IStorage {
   
   async createLesson(insertLesson: InsertLesson): Promise<Lesson> {
     const id = this.currentLessonId++;
-    const lesson: Lesson = { ...insertLesson, id };
+    const lesson: Lesson = { 
+      ...insertLesson, 
+      id,
+      downloadSize: insertLesson.downloadSize !== undefined ? insertLesson.downloadSize : null,
+      downloadUrl: insertLesson.downloadUrl !== undefined ? insertLesson.downloadUrl : null
+    };
     this.lessons.set(id, lesson);
     return lesson;
   }
@@ -462,15 +502,20 @@ export class MemStorage implements IStorage {
     if (existingProgress) {
       const updatedProgress: UserProgress = {
         ...existingProgress,
-        completed: insertProgress.completed,
-        timeSpent: insertProgress.timeSpent,
+        completed: insertProgress.completed !== undefined ? insertProgress.completed : existingProgress.completed,
+        timeSpent: insertProgress.timeSpent !== undefined ? insertProgress.timeSpent : existingProgress.timeSpent,
         lastAccessed: insertProgress.lastAccessed
       };
       this.userProgress.set(existingProgress.id, updatedProgress);
       return updatedProgress;
     } else {
       const id = this.currentProgressId++;
-      const progress: UserProgress = { ...insertProgress, id };
+      const progress: UserProgress = { 
+        ...insertProgress, 
+        id,
+        completed: insertProgress.completed !== undefined ? insertProgress.completed : false,
+        timeSpent: insertProgress.timeSpent !== undefined ? insertProgress.timeSpent : 0
+      };
       this.userProgress.set(id, progress);
       return progress;
     }
@@ -525,7 +570,11 @@ export class MemStorage implements IStorage {
   
   async createDownloadedContent(insertContent: InsertDownloadedContent): Promise<DownloadedContent> {
     const id = this.currentDownloadId++;
-    const content: DownloadedContent = { ...insertContent, id };
+    const content: DownloadedContent = { 
+      ...insertContent, 
+      id,
+      progress: insertContent.progress !== undefined ? insertContent.progress : 0 
+    };
     this.downloadedContent.set(id, content);
     return content;
   }
