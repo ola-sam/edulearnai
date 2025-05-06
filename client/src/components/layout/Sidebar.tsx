@@ -17,14 +17,24 @@ type NavItemProps = {
 const NavItem = ({ href, icon, label, active }: NavItemProps) => (
   <Link href={href}>
     <a
-      className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-        active
-          ? 'bg-primary-50 text-primary-700'
-          : 'text-gray-700 hover:bg-gray-100'
-      }`}
+      className={`flex items-center px-3 py-3 text-sm font-medium rounded-lg relative transition-all duration-200 
+        ${active
+          ? 'bg-primary-100 text-primary-700 shadow-sm border-l-4 border-primary-500 pl-2'
+          : 'text-gray-700 hover:bg-gray-100 hover:border-l-4 hover:border-gray-200 hover:pl-2'
+        }`}
     >
-      <span className="material-icons mr-3 text-primary-500">{icon}</span>
-      {label}
+      <div className={`flex items-center ${active ? 'transform scale-105' : ''}`}>
+        <span className={`material-icons mr-3 ${active ? 'text-primary-600' : 'text-gray-500'}`}>
+          {icon}
+        </span>
+        {label}
+      </div>
+      {active && (
+        <span className="absolute right-2 top-1/2 -translate-y-1/2 flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
+        </span>
+      )}
     </a>
   </Link>
 );
@@ -113,25 +123,31 @@ const Sidebar = () => {
         
         {/* User Profile */}
         {user && (
-          <div className="px-4 py-3 border-b border-gray-200">
-            <div className="flex items-center space-x-3">
-              <Avatar>
-                <AvatarFallback colorVariant="primary">
+          <div className="px-4 py-4 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center space-x-4">
+              <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
+                <AvatarFallback colorVariant="primary" className="text-lg">
                   {getInitials(user.firstName, user.lastName)}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-medium text-sm">
+                <p className="font-bold text-gray-800">
                   {user.firstName} {user.lastName}
                 </p>
-                <p className="text-xs text-gray-500">Grade {user.grade}</p>
+                <div className="flex items-center mt-1">
+                  <span className="material-icons text-amber-500 text-xs mr-1">school</span>
+                  <p className="text-xs font-medium text-gray-600">Grade {user.grade}</p>
+                </div>
               </div>
             </div>
           </div>
         )}
         
         {/* Main Navigation */}
-        <nav className="flex-1 px-2 py-4 space-y-1">
+        <nav className="flex-1 px-2 py-4 space-y-2">
+          <div className="mb-2 px-3">
+            <h2 className="text-xs uppercase text-gray-500 font-semibold tracking-wider">Main Menu</h2>
+          </div>
           {navItems.map((item) => (
             <NavItem
               key={item.href}
@@ -144,9 +160,13 @@ const Sidebar = () => {
         </nav>
         
         {/* Online Status and Logout */}
-        <div className="px-4 py-3 border-t border-gray-200">
+        <div className="px-4 py-4 border-t border-gray-200">
+          <div className="mb-2 px-1">
+            <h2 className="text-xs uppercase text-gray-500 font-semibold tracking-wider">Status</h2>
+          </div>
+          
           <div className="flex flex-col space-y-4">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 bg-gray-50 p-3 rounded-lg">
               <span className="flex h-3 w-3 relative">
                 {isOnline ? (
                   <>
@@ -168,7 +188,7 @@ const Sidebar = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="w-full flex items-center" 
+                className="w-full flex items-center shadow-sm hover:bg-red-50 hover:text-red-600 transition-colors" 
                 onClick={() => logoutMutation.mutate()}
                 disabled={logoutMutation.isPending}
               >
