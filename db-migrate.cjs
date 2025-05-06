@@ -1,11 +1,11 @@
-// @ts-check
-import { Pool } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { sql } from 'drizzle-orm';
-import ws from 'ws';
+// CommonJS-style migration script
+const { Pool } = require('@neondatabase/serverless');
+const { drizzle } = require('drizzle-orm/neon-serverless');
+const { sql } = require('drizzle-orm');
+const ws = require('ws');
 
 // Configure the neon client for WebSocket
-import { neonConfig } from '@neondatabase/serverless';
+const { neonConfig } = require('@neondatabase/serverless');
 neonConfig.webSocketConstructor = ws;
 
 if (!process.env.DATABASE_URL) {
@@ -17,7 +17,6 @@ const db = drizzle(pool);
 
 async function migrateSchema() {
   console.log('Starting schema migration...');
-  console.log('Connected to database:', process.env.DATABASE_URL);
   
   try {
     // Add isTeacher and role columns to users table if they don't exist
@@ -175,6 +174,9 @@ async function migrateSchema() {
   } catch (error) {
     console.error('Error during schema migration:', error);
     throw error;
+  } finally {
+    // Close the pool when done
+    await pool.end();
   }
 }
 
