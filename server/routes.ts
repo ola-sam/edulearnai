@@ -603,6 +603,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get all assignments for a teacher
+  app.get("/api/teacher/assignments", requireTeacher, async (req, res) => {
+    try {
+      const user = req.user!;
+      
+      // Get assignments from storage
+      let allAssignments = await storage.getAssignmentsByTeacher(user.id);
+      
+      // Format the assignments with class names and proper date formatting
+      const teacherClasses = await storage.getClassesByTeacher(user.id);
+      const classNames = teacherClasses.reduce((map, cls) => {
+        map[cls.id] = cls.name;
+        return map;
+      }, {} as Record<number, string>);
+      
+      // Format assignments with proper dates and class names
+      const formattedAssignments = allAssignments.map(assignment => {
+        // Create a properly formatted assignment object
+        const formattedAssignment = {
+          ...assignment,
+          className: classNames[assignment.classId] || 'Unknown Class',
+        };
+        
+        // Format the date fields if they exist and are objects
+        if (assignment.dueDate && typeof assignment.dueDate === 'object') {
+          (formattedAssignment as any).dueDate = new Date(assignment.dueDate as any).toISOString();
+        }
+        
+        if (assignment.assignedDate && typeof assignment.assignedDate === 'object') {
+          (formattedAssignment as any).assignedDate = new Date(assignment.assignedDate as any).toISOString();
+        }
+        
+        return formattedAssignment;
+      });
+      
+      res.json(formattedAssignments);
+    } catch (error) {
+      console.error("Error fetching assignments:", error);
+      res.status(500).json({ message: "Failed to fetch assignments" });
+    }
+  });
+  
   // Get recent assignments for a teacher
   app.get("/api/teacher/assignments/recent", requireTeacher, async (req, res) => {
     try {

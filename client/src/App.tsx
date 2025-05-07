@@ -1,3 +1,4 @@
+import React from "react";
 import { Switch, Route } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -57,10 +58,75 @@ function Router() {
       
       {/* Teacher routes */}
       <TeacherRoute path="/teacher/dashboard" component={TeacherDashboard} />
-      <TeacherRoute path="/teacher/classes" component={() => import("@/pages/teacher/Classes").then(m => m.default)} />
-      <TeacherRoute path="/teacher/lesson-plans" component={() => import("@/pages/teacher/LessonPlans").then(m => m.default)} />
-      <TeacherRoute path="/teacher/assignments" component={() => import("@/pages/teacher/Assignments").then(m => m.default)} />
-      <TeacherRoute path="/teacher/analytics" component={() => import("@/pages/teacher/Analytics").then(m => m.default)} />
+      <Route 
+        path="/teacher/classes" 
+        component={(props: any) => {
+          const { user, isLoading } = useAuth();
+          const isAuthorized = !isLoading && user && user.isTeacher === true;
+          
+          if (isLoading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
+          if (!isAuthorized) return <Dashboard />;
+          
+          // Using React.lazy with Suspense to handle the dynamic import properly
+          const ClassesComponent = React.lazy(() => import("@/pages/teacher/Classes"));
+          return (
+            <React.Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+              <ClassesComponent {...props} />
+            </React.Suspense>
+          );
+        }}
+      />
+      <Route 
+        path="/teacher/lesson-plans" 
+        component={(props: any) => {
+          const { user, isLoading } = useAuth();
+          const isAuthorized = !isLoading && user && user.isTeacher === true;
+          
+          if (isLoading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
+          if (!isAuthorized) return <Dashboard />;
+          
+          const LessonPlansComponent = React.lazy(() => import("@/pages/teacher/LessonPlans"));
+          return (
+            <React.Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+              <LessonPlansComponent {...props} />
+            </React.Suspense>
+          );
+        }}
+      />
+      <Route 
+        path="/teacher/assignments" 
+        component={(props: any) => {
+          const { user, isLoading } = useAuth();
+          const isAuthorized = !isLoading && user && user.isTeacher === true;
+          
+          if (isLoading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
+          if (!isAuthorized) return <Dashboard />;
+          
+          const AssignmentsComponent = React.lazy(() => import("@/pages/teacher/Assignments"));
+          return (
+            <React.Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+              <AssignmentsComponent {...props} />
+            </React.Suspense>
+          );
+        }}
+      />
+      <Route 
+        path="/teacher/analytics" 
+        component={(props: any) => {
+          const { user, isLoading } = useAuth();
+          const isAuthorized = !isLoading && user && user.isTeacher === true;
+          
+          if (isLoading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
+          if (!isAuthorized) return <Dashboard />;
+          
+          const AnalyticsComponent = React.lazy(() => import("@/pages/teacher/Analytics"));
+          return (
+            <React.Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+              <AnalyticsComponent {...props} />
+            </React.Suspense>
+          );
+        }}
+      />
       
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
