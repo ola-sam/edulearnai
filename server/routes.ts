@@ -352,7 +352,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Leaderboard route
   app.get("/api/leaderboard", async (req, res) => {
-    const leaderboard = await storage.getLeaderboard();
+    // Parse the grade filter query parameter if present
+    const gradeFilter = req.query.grade ? parseInt(req.query.grade as string) : undefined;
+    
+    // Get the leaderboard data and optionally filter by grade
+    const leaderboard = await storage.getLeaderboard(gradeFilter);
     
     // Return users without passwords and with limited fields
     const leaderboardData = leaderboard.map(({ id, firstName, lastName, username, grade, points }) => ({

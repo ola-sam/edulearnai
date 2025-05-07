@@ -113,7 +113,7 @@ export interface IStorage {
   updateDownloadProgress(id: number, progress: number, status: string): Promise<DownloadedContent | undefined>;
   
   // Leaderboard operations
-  getLeaderboard(): Promise<User[]>;
+  getLeaderboard(grade?: number): Promise<User[]>;
   
   // Chat Message operations
   getChatMessages(userId: number, limit?: number): Promise<ChatMessage[]>;
@@ -642,9 +642,16 @@ export class MemStorage implements IStorage {
   }
   
   // Leaderboard operations
-  async getLeaderboard(): Promise<User[]> {
-    return Array.from(this.users.values())
-      .sort((a, b) => b.points - a.points);
+  async getLeaderboard(grade?: number): Promise<User[]> {
+    let users = Array.from(this.users.values());
+    
+    // Filter by grade if specified
+    if (grade !== undefined) {
+      users = users.filter(user => user.grade === grade);
+    }
+    
+    // Sort by points in descending order
+    return users.sort((a, b) => b.points - a.points);
   }
   
   // Chat Message operations
@@ -884,12 +891,23 @@ export class DatabaseStorage implements IStorage {
     return updatedContent || undefined;
   }
 
-  async getLeaderboard(): Promise<User[]> {
+  async getLeaderboard(grade?: number): Promise<User[]> {
+    // If grade is specified, filter by grade
+    if (grade !== undefined) {
+      return db
+        .select()
+        .from(users)
+        .where(eq(users.grade, grade))
+        .orderBy(desc(users.points))
+        .limit(20);
+    }
+    
+    // Otherwise return all users
     return db
       .select()
       .from(users)
       .orderBy(desc(users.points))
-      .limit(10);
+      .limit(20);
   }
   
   // Chat Message operations
