@@ -128,6 +128,24 @@ function Router() {
         }}
       />
       
+      <Route 
+        path="/teacher/students" 
+        component={(props: any) => {
+          const { user, isLoading } = useAuth();
+          const isAuthorized = !isLoading && user && user.isTeacher === true;
+          
+          if (isLoading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
+          if (!isAuthorized) return <Dashboard />;
+          
+          const StudentsComponent = React.lazy(() => import("@/pages/teacher/Students"));
+          return (
+            <React.Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+              <StudentsComponent {...props} />
+            </React.Suspense>
+          );
+        }}
+      />
+      
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
