@@ -607,6 +607,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get class details by ID
+  app.get("/api/teacher/classes/:id", requireTeacher, async (req, res) => {
+    try {
+      const user = req.user!;
+      const classId = parseInt(req.params.id);
+      
+      if (isNaN(classId)) {
+        return res.status(400).json({ message: "Invalid class ID" });
+      }
+      
+      // Get the class from storage
+      const classDetails = await storage.getClassById(classId);
+      
+      // Check if class exists and belongs to this teacher
+      if (!classDetails) {
+        return res.status(404).json({ message: "Class not found" });
+      }
+      
+      if (classDetails.teacherId !== user.id) {
+        return res.status(403).json({ message: "You don't have permission to view this class" });
+      }
+      
+      // Get student count for this class
+      const students = await storage.getClassEnrollments(classId);
+      
+      // Format class data for frontend consumption
+      const formattedClass = {
+        ...classDetails,
+        // Format dates as ISO strings if they're Date objects
+        startDate: classDetails.startDate && typeof classDetails.startDate === 'object' 
+          ? new Date(classDetails.startDate as any).toISOString().split('T')[0] 
+          : classDetails.startDate,
+        endDate: classDetails.endDate && typeof classDetails.endDate === 'object'
+          ? new Date(classDetails.endDate as any).toISOString().split('T')[0] 
+          : classDetails.endDate,
+        studentCount: students.length
+      };
+      
+      res.json(formattedClass);
+    } catch (error) {
+      console.error("Error fetching class details:", error);
+      res.status(500).json({ message: "Failed to fetch class details" });
+    }
+  });
+  
+  // Get students enrolled in a class
+  app.get("/api/teacher/classes/:id/students", requireTeacher, async (req, res) => {
+    try {
+      const user = req.user!;
+      const classId = parseInt(req.params.id);
+      
+      if (isNaN(classId)) {
+        return res.status(400).json({ message: "Invalid class ID" });
+      }
+      
+      // Get the class from storage
+      const classDetails = await storage.getClassById(classId);
+      
+      // Check if class exists and belongs to this teacher
+      if (!classDetails) {
+        return res.status(404).json({ message: "Class not found" });
+      }
+      
+      if (classDetails.teacherId !== user.id) {
+        return res.status(403).json({ message: "You don't have permission to view this class" });
+      }
+      
+      // Get enrollments for this class
+      const enrollments = await storage.getClassEnrollments(classId);
+      
+      // Get student details for each enrollment
+      const students = await Promise.all(
+        enrollments.map(async (enrollment) => {
+          const student = await storage.getUser(enrollment.studentId);
+          return student;
+        })
+      );
+      
+      // Filter out any undefined students (in case a student was deleted)
+      const validStudents = students.filter(student => student !== undefined);
+      
+      res.json(validStudents);
+    } catch (error) {
+      console.error("Error fetching class students:", error);
+      res.status(500).json({ message: "Failed to fetch class students" });
+    }
+  });
+  
+  // Get assignments for a class
+  app.get("/api/teacher/classes/:id/assignments", requireTeacher, async (req, res) => {
+    try {
+      const user = req.user!;
+      const classId = parseInt(req.params.id);
+      
+      if (isNaN(classId)) {
+        return res.status(400).json({ message: "Invalid class ID" });
+      }
+      
+      // Get the class from storage
+      const classDetails = await storage.getClassById(classId);
+      
+      // Check if class exists and belongs to this teacher
+      if (!classDetails) {
+        return res.status(404).json({ message: "Class not found" });
+      }
+      
+      if (classDetails.teacherId !== user.id) {
+        return res.status(403).json({ message: "You don't have permission to view this class" });
+      }
+      
+      // Get assignments for this class
+      const assignments = await storage.getAssignmentsByClass(classId);
+      
+      // Format dates for frontend consumption
+      const formattedAssignments = assignments.map(assignment => ({
+        ...assignment,
+        // Format dates as ISO strings if they're Date objects
+        dueDate: assignment.dueDate && typeof assignment.dueDate === 'object' 
+          ? new Date(assignment.dueDate as any).toISOString()
+          : assignment.dueDate,
+        assignedDate: assignment.assignedDate && typeof assignment.assignedDate === 'object'
+          ? new Date(assignment.assignedDate as any).toISOString()
+          : assignment.assignedDate
+      }));
+      
+      res.json(formattedAssignments);
+    } catch (error) {
+      console.error("Error fetching class assignments:", error);
+      res.status(500).json({ message: "Failed to fetch class assignments" });
+    }
+  });
+  
   // Get all assignments for a teacher
   app.get("/api/teacher/assignments", requireTeacher, async (req, res) => {
     try {

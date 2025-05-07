@@ -59,8 +59,19 @@ type StudentType = {
   avatarUrl: string | null;
 };
 
+type AssignmentType = {
+  id: number;
+  title: string;
+  description: string;
+  dueDate: string;
+  assignedDate: string;
+  classId: number;
+  status: string;
+};
+
 const ClassDetail = () => {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params.id || '';
   const classId = parseInt(id);
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
@@ -70,7 +81,7 @@ const ClassDetail = () => {
     queryKey: [`/api/teacher/classes/${classId}`],
     queryFn: async () => {
       // Make sure classId is a number and not undefined
-      if (!classId) throw new Error('Class ID is required');
+      if (!classId || isNaN(classId)) throw new Error('Class ID is required');
       const response = await fetch(`/api/teacher/classes/${classId}`);
       if (!response.ok) throw new Error('Failed to fetch class details');
       return response.json();
@@ -82,23 +93,33 @@ const ClassDetail = () => {
   const { data: students, isLoading: isStudentsLoading } = useQuery<StudentType[]>({
     queryKey: [`/api/teacher/classes/${classId}/students`],
     queryFn: async () => {
+      if (!classId || isNaN(classId)) throw new Error('Class ID is required');
       const response = await fetch(`/api/teacher/classes/${classId}/students`);
       if (!response.ok) throw new Error('Failed to fetch students');
       return response.json();
     },
-    enabled: !!classId && !!user?.isTeacher,
+    enabled: !isNaN(classId) && !!user?.isTeacher,
   });
 
   // Get class assignments
-  const { data: assignments, isLoading: isAssignmentsLoading } = useQuery<any[]>({
+  const { data: assignments, isLoading: isAssignmentsLoading } = useQuery<AssignmentType[]>({
     queryKey: [`/api/teacher/classes/${classId}/assignments`],
     queryFn: async () => {
+      if (!classId || isNaN(classId)) throw new Error('Class ID is required');
       const response = await fetch(`/api/teacher/classes/${classId}/assignments`);
       if (!response.ok) throw new Error('Failed to fetch assignments');
       return response.json();
     },
-    enabled: !!classId && !!user?.isTeacher,
+    enabled: !isNaN(classId) && !!user?.isTeacher,
   });
+
+  // Helper function to determine if an assignment is soon due
+  const isSoonDue = (dueDate: string) => {
+    const due = new Date(dueDate);
+    const now = new Date();
+    const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
+    return due > now && (due.getTime() - now.getTime()) < threeDaysInMs;
+  };
 
   // Loading state
   if (isClassLoading) {
@@ -320,10 +341,10 @@ const ClassDetail = () => {
                             Due: {new Date(assignment.dueDate).toLocaleDateString()}
                           </p>
                         </div>
-                        <Badge variant={
-                          new Date(assignment.dueDate) < new Date() ? "destructive" : 
-                          (new Date(assignment.dueDate).getTime() - new Date().getTime()) < 3 * 24 * 60 * 60 * 1000 ? "warning" : "default"
-                        }>
+                        <Badge 
+                          variant={new Date(assignment.dueDate) < new Date() ? "destructive" : "default"}
+                          className={isSoonDue(assignment.dueDate) ? "bg-orange-100 text-orange-800 hover:bg-orange-200" : ""}
+                        >
                           {new Date(assignment.dueDate) < new Date() ? "Overdue" : "Upcoming"}
                         </Badge>
                       </div>
@@ -490,10 +511,10 @@ const ClassDetail = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant={
-                          new Date(assignment.dueDate) < new Date() ? "destructive" : 
-                          (new Date(assignment.dueDate).getTime() - new Date().getTime()) < 3 * 24 * 60 * 60 * 1000 ? "warning" : "default"
-                        }>
+                        <Badge 
+                          variant={new Date(assignment.dueDate) < new Date() ? "destructive" : "default"}
+                          className={isSoonDue(assignment.dueDate) ? "bg-orange-100 text-orange-800 hover:bg-orange-200" : ""}
+                        >
                           {new Date(assignment.dueDate) < new Date() ? "Overdue" : "Upcoming"}
                         </Badge>
                         <Button variant="outline" size="sm" asChild>
