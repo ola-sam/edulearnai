@@ -1115,13 +1115,53 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAnalyticsSummary(teacherId: number): Promise<{ totalStudents: number, averageScore: number, completionRate: number }> {
-    // For now, return some default values
-    // In a full implementation, we would compute these from database records
-    return {
-      totalStudents: 42,
-      averageScore: 85.5,
-      completionRate: 78.3
-    };
+    try {
+      // Get all classes for this teacher
+      const teacherClasses = await this.getClassesByTeacher(teacherId);
+      
+      // Get all class IDs
+      const classIds = teacherClasses.map(cls => cls.id);
+      
+      // Initialize variables to track total students
+      let totalUniqueStudents = 0;
+      
+      // Only continue if there are classes
+      if (classIds.length > 0) {
+        // Get all enrollments for these classes
+        const allEnrollments: ClassEnrollment[] = [];
+        for (const classId of classIds) {
+          const enrollments = await this.getClassEnrollments(classId);
+          allEnrollments.push(...enrollments);
+        }
+        
+        // Create a set to track unique student IDs
+        const uniqueStudentIds = new Set<number>();
+        
+        // Add each student ID to the set
+        allEnrollments.forEach(enrollment => {
+          uniqueStudentIds.add(enrollment.studentId);
+        });
+        
+        // Count unique students
+        totalUniqueStudents = uniqueStudentIds.size;
+      }
+      
+      // For now, keep using static values for other metrics
+      // In a full implementation, we would compute these from database records
+      return {
+        totalStudents: totalUniqueStudents,
+        averageScore: 85.5,
+        completionRate: 78.3
+      };
+    } catch (error) {
+      console.error("Error calculating analytics summary:", error);
+      // Fall back to default values if there's an error
+      return {
+        totalStudents: 0,
+        averageScore: 0,
+        completionRate: 0
+      };
+    }
   }
   
   // Announcement operations
