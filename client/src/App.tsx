@@ -77,6 +77,24 @@ function Router() {
         }}
       />
       <Route 
+        path="/teacher/classes/:id" 
+        component={(props: any) => {
+          const { user, isLoading } = useAuth();
+          const isAuthorized = !isLoading && user && user.isTeacher === true;
+          
+          if (isLoading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
+          if (!isAuthorized) return <Dashboard />;
+          
+          // Using React.lazy with Suspense to handle the dynamic import properly
+          const ClassDetailComponent = React.lazy(() => import("@/pages/teacher/ClassDetail"));
+          return (
+            <React.Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+              <ClassDetailComponent {...props} />
+            </React.Suspense>
+          );
+        }}
+      />
+      <Route 
         path="/teacher/lesson-plans" 
         component={(props: any) => {
           const { user, isLoading } = useAuth();
