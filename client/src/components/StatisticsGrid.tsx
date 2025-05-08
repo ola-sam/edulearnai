@@ -3,8 +3,7 @@ import type { Statistic } from '@shared/schema';
 
 const StatisticsGrid = () => {
   const { data: statistics = [], isLoading, error } = useQuery<Statistic[]>({
-    queryKey: ['/api/statistics'],
-    retry: 1
+    queryKey: ['/api/statistics']
   });
 
   if (isLoading) {

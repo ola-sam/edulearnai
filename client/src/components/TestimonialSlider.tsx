@@ -9,8 +9,7 @@ const TestimonialSlider = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   
   const { data: testimonials = [], isLoading, error } = useQuery<Testimonial[]>({
-    queryKey: ['/api/testimonials/featured'],
-    retry: 1
+    queryKey: ['/api/testimonials/featured']
   });
 
   // Auto-advance the testimonials every 7 seconds
