@@ -18,6 +18,7 @@ import { z } from "zod";
 import { generateTutorResponse, type AITutorRequest } from "./services/openai";
 import { generatePersonalizedRecommendations } from "./services/recommendations";
 import { setupAuth } from "./auth";
+import { ragService } from "./services/rag";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication
@@ -1158,6 +1159,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error updating statistic:", error);
       res.status(500).json({ message: "Failed to update statistic" });
+    }
+  });
+  
+  // RAG Curriculum Document routes
+  
+  // Middleware to check if user is an admin
+  const requireAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Forbidden: Admin only" });
+    }
+    
+    next();
+  };
+  
+  // Create curriculum document with embedding
+  app.post("/api/admin/curriculum-documents", requireAdmin, async (req, res) => {
+    try {
+      const documentSchema = z.object({
+        title: z.string().min(1),
+        content: z.string().min(1),
+        grade: z.number().int().min(1).max(12),
+        subject: z.string().min(1),
+        documentType: z.string().min(1),
+        metadata: z.record(z.any()).optional(),
+      });
+      
+      const documentData = documentSchema.parse(req.body);
+      
+      // Create document with embedding using RAG service
+      const document = await ragService.createDocument(documentData);
+      
+      res.status(201).json(document);
+    } catch (error) {
+      console.error("Error creating curriculum document:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid document data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create curriculum document" });
+    }
+  });
+  
+  // Get all curriculum documents
+  app.get("/api/admin/curriculum-documents", requireAdmin, async (req, res) => {
+    try {
+      const documents = await storage.getCurriculumDocuments();
+      res.json(documents);
+    } catch (error) {
+      console.error("Error fetching curriculum documents:", error);
+      res.status(500).json({ message: "Failed to fetch curriculum documents" });
+    }
+  });
+  
+  // Get curriculum documents by grade
+  app.get("/api/admin/curriculum-documents/grade/:grade", requireAdmin, async (req, res) => {
+    try {
+      const grade = parseInt(req.params.grade);
+      if (isNaN(grade)) {
+        return res.status(400).json({ message: "Invalid grade" });
+      }
+      
+      const documents = await storage.getCurriculumDocumentsByGrade(grade);
+      res.json(documents);
+    } catch (error) {
+      console.error("Error fetching curriculum documents by grade:", error);
+      res.status(500).json({ message: "Failed to fetch curriculum documents" });
+    }
+  });
+  
+  // Get curriculum documents by subject
+  app.get("/api/admin/curriculum-documents/subject/:subject", requireAdmin, async (req, res) => {
+    try {
+      const subject = req.params.subject;
+      
+      const documents = await storage.getCurriculumDocumentsBySubject(subject);
+      res.json(documents);
+    } catch (error) {
+      console.error("Error fetching curriculum documents by subject:", error);
+      res.status(500).json({ message: "Failed to fetch curriculum documents" });
     }
   });
 
