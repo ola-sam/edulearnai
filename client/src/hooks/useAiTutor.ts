@@ -3,6 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 
+interface Source {
+  id: number;
+  title: string;
+  grade: number;
+  subject: string;
+  documentType: string;
+}
+
 interface ChatMessage {
   id: number;
   userId: number;
@@ -10,6 +18,7 @@ interface ChatMessage {
   timestamp: Date;
   role: 'user' | 'assistant';
   subject: string | null;
+  sources?: Source[];
 }
 
 interface UseAiTutorProps {

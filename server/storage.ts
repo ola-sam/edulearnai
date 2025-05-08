@@ -1304,6 +1304,100 @@ export class DatabaseStorage implements IStorage {
     
     return updatedStatistic || undefined;
   }
+  
+  // Curriculum Document operations
+  async getCurriculumDocuments(): Promise<CurriculumDocument[]> {
+    return db.select().from(curriculumDocuments);
+  }
+  
+  async getCurriculumDocumentById(id: number): Promise<CurriculumDocument | undefined> {
+    const [document] = await db.select().from(curriculumDocuments).where(eq(curriculumDocuments.id, id));
+    return document;
+  }
+  
+  async getCurriculumDocumentsByGrade(grade: number): Promise<CurriculumDocument[]> {
+    return db.select().from(curriculumDocuments).where(eq(curriculumDocuments.grade, grade));
+  }
+  
+  async getCurriculumDocumentsBySubject(subject: string): Promise<CurriculumDocument[]> {
+    return db.select().from(curriculumDocuments).where(eq(curriculumDocuments.subject, subject));
+  }
+  
+  async getCurriculumDocumentsByGradeAndSubject(grade: number, subject: string): Promise<CurriculumDocument[]> {
+    return db.select().from(curriculumDocuments).where(
+      and(
+        eq(curriculumDocuments.grade, grade),
+        eq(curriculumDocuments.subject, subject)
+      )
+    );
+  }
+  
+  async createCurriculumDocument(document: InsertCurriculumDocument): Promise<CurriculumDocument> {
+    const [newDocument] = await db
+      .insert(curriculumDocuments)
+      .values(document)
+      .returning();
+    return newDocument;
+  }
+  
+  async updateCurriculumDocumentEmbedding(id: number, embedding: string): Promise<CurriculumDocument | undefined> {
+    const [updatedDocument] = await db
+      .update(curriculumDocuments)
+      .set({ 
+        vectorEmbedding: embedding,
+        updatedAt: new Date()
+      })
+      .where(eq(curriculumDocuments.id, id))
+      .returning();
+      
+    return updatedDocument;
+  }
+  
+  // This is a simple cosine similarity search
+  // In a production environment, you would use a vector database like pgvector
+  async searchSimilarDocuments(embedding: number[], limit: number = 5): Promise<CurriculumDocument[]> {
+    // Since we don't have native vector support, we'll fetch all documents and compute similarity in JS
+    // (This is not efficient for large datasets - in production use pgvector or a dedicated vector DB)
+    const documents = await this.getCurriculumDocuments();
+    
+    // Filter out documents without embeddings
+    const documentsWithEmbeddings = documents.filter(doc => doc.vectorEmbedding);
+    
+    // Calculate cosine similarity
+    const documentsWithSimilarity = documentsWithEmbeddings.map(doc => {
+      const docEmbedding = JSON.parse(doc.vectorEmbedding || '[]');
+      const similarity = this.calculateCosineSimilarity(embedding, docEmbedding);
+      return { ...doc, similarity };
+    });
+    
+    // Sort by similarity (highest first) and return top results
+    return documentsWithSimilarity
+      .sort((a, b) => (b.similarity || 0) - (a.similarity || 0))
+      .slice(0, limit)
+      .map(({ similarity, ...doc }) => doc); // Remove similarity from return object
+  }
+  
+  // Helper: Calculate cosine similarity between two vectors
+  private calculateCosineSimilarity(vecA: number[], vecB: number[]): number {
+    if (vecA.length !== vecB.length) return 0;
+    
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+    
+    for (let i = 0; i < vecA.length; i++) {
+      dotProduct += vecA[i] * vecB[i];
+      normA += vecA[i] * vecA[i];
+      normB += vecB[i] * vecB[i];
+    }
+    
+    normA = Math.sqrt(normA);
+    normB = Math.sqrt(normB);
+    
+    if (normA === 0 || normB === 0) return 0;
+    
+    return dotProduct / (normA * normB);
+  }
 }
 
 // Use the database storage implementation

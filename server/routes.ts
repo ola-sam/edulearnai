@@ -486,7 +486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         quizResults: quizResults.slice(0, 5)      // Just the 5 most recent
       };
       
-      // Generate AI response
+      // Generate AI response with RAG
       const aiResponse = await generateTutorResponse({
         userId,
         message,
@@ -499,16 +499,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: message,
         timestamp: new Date(),
         role: "user",
-        subject: subject
+        subject: subject,
+        sources: null // User messages don't have sources
       });
       
-      // Store AI response
+      // Store AI response with sources
       await storage.createChatMessage({
         userId,
         content: aiResponse.content,
         timestamp: new Date(),
         role: "assistant",
-        subject: subject
+        subject: subject,
+        sources: aiResponse.sources || null
       });
       
       res.json(aiResponse);
