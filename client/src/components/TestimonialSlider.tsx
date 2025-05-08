@@ -4,12 +4,14 @@ import type { Testimonial } from '@shared/schema';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getQueryFn } from '@/lib/queryClient';
 
 const TestimonialSlider = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   
   const { data: testimonials = [], isLoading, error } = useQuery<Testimonial[]>({
-    queryKey: ['/api/testimonials/featured']
+    queryKey: ['/api/testimonials/featured'],
+    queryFn: getQueryFn({ on401: 'returnNull' })
   });
 
   // Auto-advance the testimonials every 7 seconds
@@ -49,7 +51,7 @@ const TestimonialSlider = () => {
     );
   }
 
-  if (error || testimonials.length === 0) {
+  if ((error || !testimonials || testimonials.length === 0) && !isLoading) {
     // Fallback to static content if there's an error
     return (
       <div className="bg-primary-50 p-8 rounded-xl max-w-3xl mx-auto">

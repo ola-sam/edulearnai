@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import type { Statistic } from '@shared/schema';
+import { getQueryFn } from '@/lib/queryClient';
 
 const StatisticsGrid = () => {
   const { data: statistics = [], isLoading, error } = useQuery<Statistic[]>({
-    queryKey: ['/api/statistics']
+    queryKey: ['/api/statistics'],
+    queryFn: getQueryFn({ on401: 'returnNull' })
   });
 
   if (isLoading) {
@@ -21,7 +23,7 @@ const StatisticsGrid = () => {
     );
   }
 
-  if (error || statistics.length === 0) {
+  if ((error || !statistics) && !isLoading) {
     // Fallback to static content if there's an error
     return (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
@@ -59,7 +61,7 @@ const StatisticsGrid = () => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-      {statistics.map((stat: Statistic) => (
+      {statistics && statistics.length > 0 && statistics.map((stat: Statistic) => (
         <div key={stat.id} className="p-4 flex flex-col items-center text-center">
           <div className="text-4xl font-bold text-primary-600 mb-2 flex items-center">
             {stat.icon && <span className="material-icons mr-2 text-3xl">{stat.icon}</span>}
