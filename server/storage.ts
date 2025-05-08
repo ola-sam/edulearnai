@@ -17,6 +17,8 @@ import {
   lessonPlans,
   analytics,
   announcements,
+  testimonials,
+  statistics,
   type User,
   type InsertUser,
   type Subject,
@@ -52,7 +54,11 @@ import {
   type Analytics,
   type InsertAnalytics,
   type Announcement,
-  type InsertAnnouncement
+  type InsertAnnouncement,
+  type Testimonial,
+  type InsertTestimonial,
+  type Statistic,
+  type InsertStatistic
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -166,6 +172,18 @@ export interface IStorage {
   getAnnouncementsByTeacher(teacherId: number): Promise<Announcement[]>;
   getAnnouncementsByClass(classId: number): Promise<Announcement[]>;
   createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
+  
+  // Testimonial operations
+  getTestimonials(limit?: number): Promise<Testimonial[]>;
+  getFeaturedTestimonials(limit?: number): Promise<Testimonial[]>;
+  getTestimonialById(id: number): Promise<Testimonial | undefined>;
+  createTestimonial(testimonial: InsertTestimonial): Promise<Testimonial>;
+  
+  // Statistics operations
+  getStatistics(): Promise<Statistic[]>;
+  getStatisticsByCategory(category: string): Promise<Statistic[]>;
+  createStatistic(statistic: InsertStatistic): Promise<Statistic>;
+  updateStatistic(id: number, value: string): Promise<Statistic | undefined>;
 }
 
 export class MemStorage implements IStorage {

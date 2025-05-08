@@ -469,6 +469,54 @@ export const insertAnnouncementSchema = createInsertSchema(announcements).pick({
 export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
 export type Announcement = typeof announcements.$inferSelect;
 
+// Testimonials
+export const testimonials = pgTable("testimonials", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  role: text("role").notNull(),
+  content: text("content").notNull(),
+  rating: integer("rating").notNull().default(5),
+  avatarUrl: text("avatar_url"),
+  organization: text("organization"),
+  featured: boolean("featured").default(false).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertTestimonialSchema = createInsertSchema(testimonials).pick({
+  name: true,
+  role: true,
+  content: true,
+  rating: true,
+  avatarUrl: true,
+  organization: true,
+  featured: true,
+});
+
+export type InsertTestimonial = z.infer<typeof insertTestimonialSchema>;
+export type Testimonial = typeof testimonials.$inferSelect;
+
+// Statistics
+export const statistics = pgTable("statistics", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  value: text("value").notNull(),
+  icon: text("icon"),
+  category: text("category").notNull(), // e.g., "users", "content", "engagement"
+  displayOrder: integer("display_order").default(0).notNull(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertStatisticSchema = createInsertSchema(statistics).pick({
+  name: true,
+  value: true,
+  icon: true,
+  category: true,
+  displayOrder: true,
+});
+
+export type InsertStatistic = z.infer<typeof insertStatisticSchema>;
+export type Statistic = typeof statistics.$inferSelect;
+
 // Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
   progress: many(userProgress),
