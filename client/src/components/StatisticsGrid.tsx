@@ -59,22 +59,35 @@ const StatisticsGrid = () => {
     );
   }
 
+  // Create a manually ordered array with the specific expected sequence
+  const orderedItems = [
+    {id: 'active-students', name: 'Active Students', value: '10K+', icon: 'school'},
+    {id: 'teachers', name: 'Dedicated Teachers', value: '500+', icon: 'chalkboard_teacher'},
+    {id: 'lessons', name: 'Interactive Lessons', value: '1000+', icon: 'menu_book'},
+    {id: 'satisfaction', name: 'Satisfaction Rate', value: '95%', icon: 'star'},
+  ];
+
   return (
     <div className="flex flex-wrap justify-center gap-10 max-w-4xl mx-auto mb-12">
-      {statistics && statistics.length > 0 && 
-        // Sort by display_order to ensure correct sequence
-        [...statistics]
-          .sort((a, b) => a.displayOrder - b.displayOrder)
-          .map((stat: Statistic) => (
-            <div key={stat.id} className="p-4 flex flex-col items-center text-center flex-1 min-w-[150px]">
+      {!isLoading && !error && statistics && statistics.length > 0 ? (
+        // Map items in explicit predefined order
+        orderedItems.map((item) => {
+          // Find the corresponding statistic in our database
+          const matchingStat = statistics.find(
+            stat => stat.name.toLowerCase().includes(item.name.toLowerCase().split(' ')[0])
+          );
+          
+          return (
+            <div key={item.id} className="p-4 flex flex-col items-center text-center flex-1 min-w-[150px]">
               <div className="text-4xl font-bold text-primary-600 mb-2 flex items-center">
-                {stat.icon && <span className="material-icons mr-2 text-3xl">{stat.icon}</span>}
-                {stat.value}
+                <span className="material-icons mr-2 text-3xl">{item.icon}</span>
+                {matchingStat ? matchingStat.value : item.value}
               </div>
-              <p className="text-gray-600">{stat.name}</p>
+              <p className="text-gray-600">{item.name}</p>
             </div>
-          ))
-      }
+          );
+        })
+      ) : null}
     </div>
   );
 };
