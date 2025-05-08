@@ -1,39 +1,57 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { Testimonial } from '@shared/schema';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getQueryFn } from '@/lib/queryClient';
+import useEmblaCarousel from 'embla-carousel-react';
 
 const TestimonialSlider = () => {
   const [activeIndex, setActiveIndex] = useState(0);
-  
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: true, 
+    align: 'center',
+    dragFree: false
+  });
+
   const { data: testimonials = [], isLoading, error } = useQuery<Testimonial[]>({
     queryKey: ['/api/testimonials/featured'],
     queryFn: getQueryFn({ on401: 'returnNull' })
   });
 
-  // Auto-advance the testimonials every 7 seconds
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setActiveIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
   useEffect(() => {
-    if (testimonials.length === 0) return;
+    if (!emblaApi) return;
     
-    const interval = setInterval(() => {
-      setActiveIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
+    emblaApi.on('select', onSelect);
+    
+    // Set up auto-scroll
+    const autoplay = setInterval(() => {
+      if (emblaApi.canScrollNext()) {
+        emblaApi.scrollNext();
+      } else {
+        emblaApi.scrollTo(0);
+      }
     }, 7000);
     
-    return () => clearInterval(interval);
-  }, [testimonials.length]);
+    return () => {
+      emblaApi.off('select', onSelect);
+      clearInterval(autoplay);
+    };
+  }, [emblaApi, onSelect]);
   
-  const goToNext = () => {
-    if (testimonials.length === 0) return;
-    setActiveIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
-  };
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
   
-  const goToPrevious = () => {
-    if (testimonials.length === 0) return;
-    setActiveIndex((prevIndex) => (prevIndex - 1 + testimonials.length) % testimonials.length);
-  };
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
 
   if (isLoading) {
     return (
@@ -71,41 +89,47 @@ const TestimonialSlider = () => {
     );
   }
   
-  const testimonial = testimonials[activeIndex] as Testimonial;
-  
   return (
-    <div className="relative">
-      <Card className="bg-primary-50 p-8 rounded-xl max-w-3xl mx-auto relative">
-        <div className="flex items-center justify-center mb-4">
-          {Array.from({ length: testimonial.rating || 5 }).map((_, i) => (
-            <span key={i} className="material-icons text-yellow-500">star</span>
+    <div className="relative max-w-3xl mx-auto">
+      <div className="overflow-hidden" ref={emblaRef}>
+        <div className="flex">
+          {testimonials.map((testimonial, index) => (
+            <div className="flex-[0_0_100%] min-w-0" key={testimonial.id}>
+              <Card className="bg-primary-50 p-8 rounded-xl mx-4 h-full">
+                <div className="flex items-center justify-center mb-4">
+                  {Array.from({ length: testimonial.rating || 5 }).map((_, i) => (
+                    <span key={i} className="material-icons text-yellow-500">star</span>
+                  ))}
+                </div>
+                <p className="text-gray-700 italic mb-4">
+                  "{testimonial.content}"
+                </p>
+                <div>
+                  <p className="font-medium">{testimonial.name}</p>
+                  <p className="text-sm text-gray-600">
+                    {testimonial.role}
+                    {testimonial.organization && ` • ${testimonial.organization}`}
+                  </p>
+                </div>
+              </Card>
+            </div>
           ))}
         </div>
-        <p className="text-gray-700 italic mb-4">
-          "{testimonial.content}"
-        </p>
-        <div>
-          <p className="font-medium">{testimonial.name}</p>
-          <p className="text-sm text-gray-600">
-            {testimonial.role}
-            {testimonial.organization && ` • ${testimonial.organization}`}
-          </p>
-        </div>
-        
-        {/* Pagination dots */}
-        <div className="flex justify-center space-x-2 mt-6">
-          {testimonials.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setActiveIndex(index)}
-              className={`h-2 w-2 rounded-full transition-colors ${
-                index === activeIndex ? 'bg-primary-600' : 'bg-primary-200'
-              }`}
-              aria-label={`Go to testimonial ${index + 1}`}
-            />
-          ))}
-        </div>
-      </Card>
+      </div>
+      
+      {/* Pagination dots */}
+      <div className="flex justify-center space-x-2 mt-6">
+        {testimonials.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => emblaApi?.scrollTo(index)}
+            className={`h-2 w-2 rounded-full transition-colors ${
+              index === activeIndex ? 'bg-primary-600' : 'bg-primary-200'
+            }`}
+            aria-label={`Go to testimonial ${index + 1}`}
+          />
+        ))}
+      </div>
       
       {/* Navigation buttons */}
       {testimonials.length > 1 && (
@@ -114,7 +138,7 @@ const TestimonialSlider = () => {
             variant="outline"
             size="icon"
             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full bg-white border-gray-200 shadow-md hover:bg-gray-100 z-10"
-            onClick={goToPrevious}
+            onClick={scrollPrev}
             aria-label="Previous testimonial"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -124,7 +148,7 @@ const TestimonialSlider = () => {
             variant="outline"
             size="icon"
             className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 rounded-full bg-white border-gray-200 shadow-md hover:bg-gray-100 z-10"
-            onClick={goToNext}
+            onClick={scrollNext}
             aria-label="Next testimonial"
           >
             <ChevronRight className="h-4 w-4" />

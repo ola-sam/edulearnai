@@ -60,9 +60,9 @@ const StatisticsGrid = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+    <div className="flex flex-wrap justify-center gap-10 max-w-4xl mx-auto mb-12">
       {statistics && statistics.length > 0 && statistics.map((stat: Statistic) => (
-        <div key={stat.id} className="p-4 flex flex-col items-center text-center">
+        <div key={stat.id} className="p-4 flex flex-col items-center text-center flex-1 min-w-[150px]">
           <div className="text-4xl font-bold text-primary-600 mb-2 flex items-center">
             {stat.icon && <span className="material-icons mr-2 text-3xl">{stat.icon}</span>}
             {stat.value}
