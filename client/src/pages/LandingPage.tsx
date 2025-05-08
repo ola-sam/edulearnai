@@ -1,6 +1,8 @@
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/use-auth';
+import TestimonialSlider from '@/components/TestimonialSlider';
+import StatisticsGrid from '@/components/StatisticsGrid';
 
 const LandingPage = () => {
   const { user } = useAuth();
@@ -292,39 +294,11 @@ const LandingPage = () => {
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold mb-12">Trusted by Educators and Students</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-            <div className="p-4">
-              <div className="text-4xl font-bold text-primary-600 mb-2">10K+</div>
-              <p className="text-gray-600">Active Students</p>
-            </div>
-            <div className="p-4">
-              <div className="text-4xl font-bold text-primary-600 mb-2">500+</div>
-              <p className="text-gray-600">Dedicated Teachers</p>
-            </div>
-            <div className="p-4">
-              <div className="text-4xl font-bold text-primary-600 mb-2">1000+</div>
-              <p className="text-gray-600">Interactive Lessons</p>
-            </div>
-            <div className="p-4">
-              <div className="text-4xl font-bold text-primary-600 mb-2">95%</div>
-              <p className="text-gray-600">Satisfaction Rate</p>
-            </div>
-          </div>
+          {/* Dynamic Statistics from database */}
+          <StatisticsGrid />
           
-          <div className="bg-primary-50 p-8 rounded-xl max-w-3xl mx-auto">
-            <div className="flex items-center justify-center mb-4">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <span key={star} className="material-icons text-yellow-500">star</span>
-              ))}
-            </div>
-            <p className="text-gray-700 italic mb-4">
-              "JubunuAI has transformed how I teach my 5th-grade class. The personalized learning paths and analytics have helped me identify and address learning gaps more effectively than ever before."
-            </p>
-            <div>
-              <p className="font-medium">Ms. Johnson</p>
-              <p className="text-sm text-gray-600">Elementary School Teacher</p>
-            </div>
-          </div>
+          {/* Dynamic Testimonials Slider */}
+          <TestimonialSlider />
         </div>
       </section>
 

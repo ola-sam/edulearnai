@@ -1205,27 +1205,35 @@ export class DatabaseStorage implements IStorage {
 
   // Testimonial operations
   async getTestimonials(limit?: number): Promise<Testimonial[]> {
-    let query = db.select().from(testimonials).orderBy(desc(testimonials.createdAt));
-    
     if (limit) {
-      query = query.limit(limit);
+      return await db
+        .select()
+        .from(testimonials)
+        .orderBy(desc(testimonials.createdAt))
+        .limit(limit);
     }
     
-    return await query;
+    return await db
+      .select()
+      .from(testimonials)
+      .orderBy(desc(testimonials.createdAt));
   }
   
   async getFeaturedTestimonials(limit?: number): Promise<Testimonial[]> {
-    let query = db
+    if (limit) {
+      return await db
+        .select()
+        .from(testimonials)
+        .where(eq(testimonials.featured, true))
+        .orderBy(desc(testimonials.createdAt))
+        .limit(limit);
+    }
+    
+    return await db
       .select()
       .from(testimonials)
       .where(eq(testimonials.featured, true))
       .orderBy(desc(testimonials.createdAt));
-    
-    if (limit) {
-      query = query.limit(limit);
-    }
-    
-    return await query;
   }
   
   async getTestimonialById(id: number): Promise<Testimonial | undefined> {
