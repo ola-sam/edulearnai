@@ -79,7 +79,8 @@ const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
         content: AI_INITIAL_MESSAGE,
         timestamp: new Date(),
         role: 'assistant',
-        subject: null
+        subject: null,
+        sources: [] // Empty sources array for welcome message
       }];
   
   // Focus input when opened
