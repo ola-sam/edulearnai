@@ -148,7 +148,10 @@ const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
               <span className="ml-2 text-gray-600 text-sm sm:text-base">Loading chat history...</span>
             </div>
           ) : (
-            messages.map(message => (
+            // Sort messages by timestamp in ascending order (oldest first, newest last)
+            [...messages].sort((a, b) => 
+              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+            ).map(message => (
               <div 
                 key={message.id} 
                 className={`flex mb-3 sm:mb-4 ${message.role === 'user' ? 'justify-end' : ''}`}
