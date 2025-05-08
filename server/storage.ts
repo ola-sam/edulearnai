@@ -19,6 +19,7 @@ import {
   announcements,
   testimonials,
   statistics,
+  curriculumDocuments,
   type User,
   type InsertUser,
   type Subject,
@@ -58,7 +59,9 @@ import {
   type Testimonial,
   type InsertTestimonial,
   type Statistic,
-  type InsertStatistic
+  type InsertStatistic,
+  type CurriculumDocument,
+  type InsertCurriculumDocument
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -184,6 +187,16 @@ export interface IStorage {
   getStatisticsByCategory(category: string): Promise<Statistic[]>;
   createStatistic(statistic: InsertStatistic): Promise<Statistic>;
   updateStatistic(id: number, value: string): Promise<Statistic | undefined>;
+  
+  // Curriculum Document operations (for RAG)
+  getCurriculumDocuments(): Promise<CurriculumDocument[]>;
+  getCurriculumDocumentById(id: number): Promise<CurriculumDocument | undefined>;
+  getCurriculumDocumentsByGrade(grade: number): Promise<CurriculumDocument[]>;
+  getCurriculumDocumentsBySubject(subject: string): Promise<CurriculumDocument[]>;
+  getCurriculumDocumentsByGradeAndSubject(grade: number, subject: string): Promise<CurriculumDocument[]>;
+  createCurriculumDocument(document: InsertCurriculumDocument): Promise<CurriculumDocument>;
+  updateCurriculumDocumentEmbedding(id: number, embedding: string): Promise<CurriculumDocument | undefined>;
+  searchSimilarDocuments(embedding: number[], limit?: number): Promise<CurriculumDocument[]>;
 }
 
 export class MemStorage implements IStorage {

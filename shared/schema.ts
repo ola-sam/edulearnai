@@ -223,6 +223,33 @@ export const insertDownloadedContentSchema = createInsertSchema(downloadedConten
 export type InsertDownloadedContent = z.infer<typeof insertDownloadedContentSchema>;
 export type DownloadedContent = typeof downloadedContent.$inferSelect;
 
+// Curriculum Documents for RAG
+export const curriculumDocuments = pgTable("curriculum_documents", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  grade: integer("grade").notNull(),
+  subject: text("subject").notNull(),
+  documentType: text("document_type").notNull(), // "lesson_plan", "textbook", "worksheet", "reference", etc.
+  metadata: jsonb("metadata"), // Additional info about the document
+  vectorEmbedding: text("vector_embedding"), // OpenAI embedding as text (JSON stringified)
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertCurriculumDocumentSchema = createInsertSchema(curriculumDocuments).pick({
+  title: true,
+  content: true,
+  grade: true, 
+  subject: true,
+  documentType: true,
+  metadata: true,
+  vectorEmbedding: true,
+});
+
+export type InsertCurriculumDocument = z.infer<typeof insertCurriculumDocumentSchema>;
+export type CurriculumDocument = typeof curriculumDocuments.$inferSelect;
+
 // Chat Messages
 export const chatMessages = pgTable("chat_messages", {
   id: serial("id").primaryKey(),
@@ -231,6 +258,7 @@ export const chatMessages = pgTable("chat_messages", {
   timestamp: timestamp("timestamp").notNull().defaultNow(),
   role: text("role").notNull(), // "user" or "assistant"
   subject: text("subject"),      // Optional subject context
+  sources: jsonb("sources"),     // Optional document sources used in RAG
 });
 
 export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
@@ -239,6 +267,7 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
   timestamp: true,
   role: true,
   subject: true,
+  sources: true,
 });
 
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
