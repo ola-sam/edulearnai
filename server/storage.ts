@@ -1202,6 +1202,87 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return createdAnnouncement;
   }
+
+  // Testimonial operations
+  async getTestimonials(limit?: number): Promise<Testimonial[]> {
+    let query = db.select().from(testimonials).orderBy(desc(testimonials.createdAt));
+    
+    if (limit) {
+      query = query.limit(limit);
+    }
+    
+    return await query;
+  }
+  
+  async getFeaturedTestimonials(limit?: number): Promise<Testimonial[]> {
+    let query = db
+      .select()
+      .from(testimonials)
+      .where(eq(testimonials.featured, true))
+      .orderBy(desc(testimonials.createdAt));
+    
+    if (limit) {
+      query = query.limit(limit);
+    }
+    
+    return await query;
+  }
+  
+  async getTestimonialById(id: number): Promise<Testimonial | undefined> {
+    const [testimonial] = await db
+      .select()
+      .from(testimonials)
+      .where(eq(testimonials.id, id));
+    
+    return testimonial || undefined;
+  }
+  
+  async createTestimonial(testimonial: InsertTestimonial): Promise<Testimonial> {
+    const [createdTestimonial] = await db
+      .insert(testimonials)
+      .values(testimonial)
+      .returning();
+    
+    return createdTestimonial;
+  }
+  
+  // Statistics operations
+  async getStatistics(): Promise<Statistic[]> {
+    return await db
+      .select()
+      .from(statistics)
+      .orderBy(statistics.displayOrder);
+  }
+  
+  async getStatisticsByCategory(category: string): Promise<Statistic[]> {
+    return await db
+      .select()
+      .from(statistics)
+      .where(eq(statistics.category, category))
+      .orderBy(statistics.displayOrder);
+  }
+  
+  async createStatistic(statistic: InsertStatistic): Promise<Statistic> {
+    const [createdStatistic] = await db
+      .insert(statistics)
+      .values(statistic)
+      .returning();
+    
+    return createdStatistic;
+  }
+  
+  async updateStatistic(id: number, value: string): Promise<Statistic | undefined> {
+    const [updatedStatistic] = await db
+      .update(statistics)
+      .set({ 
+        value,
+        updatedAt: new Date()
+      })
+      .where(eq(statistics.id, id))
+      .returning();
+    
+    return updatedStatistic || undefined;
+  }
 }
 
 // Use the database storage implementation

@@ -1052,6 +1052,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Testimonials routes
+  app.get("/api/testimonials", async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const testimonials = await storage.getTestimonials(limit);
+      res.json(testimonials);
+    } catch (error) {
+      console.error("Error fetching testimonials:", error);
+      res.status(500).json({ message: "Failed to fetch testimonials" });
+    }
+  });
+
+  app.get("/api/testimonials/featured", async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const testimonials = await storage.getFeaturedTestimonials(limit);
+      res.json(testimonials);
+    } catch (error) {
+      console.error("Error fetching featured testimonials:", error);
+      res.status(500).json({ message: "Failed to fetch featured testimonials" });
+    }
+  });
+
+  app.get("/api/testimonials/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const testimonial = await storage.getTestimonialById(id);
+      
+      if (!testimonial) {
+        return res.status(404).json({ message: "Testimonial not found" });
+      }
+      
+      res.json(testimonial);
+    } catch (error) {
+      console.error("Error fetching testimonial:", error);
+      res.status(500).json({ message: "Failed to fetch testimonial" });
+    }
+  });
+
+  app.post("/api/testimonials", async (req, res) => {
+    try {
+      const testimonialData = insertTestimonialSchema.parse(req.body);
+      const testimonial = await storage.createTestimonial(testimonialData);
+      res.status(201).json(testimonial);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid testimonial data", errors: error.errors });
+      }
+      console.error("Error creating testimonial:", error);
+      res.status(500).json({ message: "Failed to create testimonial" });
+    }
+  });
+
+  // Statistics routes
+  app.get("/api/statistics", async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      let statistics;
+      
+      if (category) {
+        statistics = await storage.getStatisticsByCategory(category);
+      } else {
+        statistics = await storage.getStatistics();
+      }
+      
+      res.json(statistics);
+    } catch (error) {
+      console.error("Error fetching statistics:", error);
+      res.status(500).json({ message: "Failed to fetch statistics" });
+    }
+  });
+
+  app.post("/api/statistics", async (req, res) => {
+    try {
+      const statisticData = insertStatisticSchema.parse(req.body);
+      const statistic = await storage.createStatistic(statisticData);
+      res.status(201).json(statistic);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid statistic data", errors: error.errors });
+      }
+      console.error("Error creating statistic:", error);
+      res.status(500).json({ message: "Failed to create statistic" });
+    }
+  });
+
+  app.put("/api/statistics/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { value } = z.object({ value: z.string() }).parse(req.body);
+      
+      const statistic = await storage.updateStatistic(id, value);
+      
+      if (!statistic) {
+        return res.status(404).json({ message: "Statistic not found" });
+      }
+      
+      res.json(statistic);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid statistic data", errors: error.errors });
+      }
+      console.error("Error updating statistic:", error);
+      res.status(500).json({ message: "Failed to update statistic" });
+    }
+  });
+
   // Setup the HTTP server
   const httpServer = createServer(app);
   return httpServer;
