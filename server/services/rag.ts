@@ -1,161 +1,172 @@
-import OpenAI from "openai";
 import { storage } from "../storage";
-import { CurriculumDocument, InsertCurriculumDocument } from "@shared/schema";
+import { InsertCurriculumDocument, type CurriculumDocument } from "@shared/schema";
+import OpenAI from "openai";
 
-// Initialize the OpenAI client
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY 
-});
+// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+interface RagSimilarityResult {
+  document: CurriculumDocument;
+  similarity: number;
+}
 
 /**
- * Service for Retrieval Augmented Generation (RAG)
- * Handles document storage, embedding generation, and similarity search
+ * RAG (Retrieval Augmented Generation) Service
+ * Handles document embedding generation, document retrieval, and context augmentation
  */
-export class RAGService {
+class RagService {
   /**
-   * Generate embeddings for a text document using OpenAI's embedding API
-   * @param text The text to generate embeddings for
-   * @returns Array of embedding vectors
+   * Creates a curriculum document with an embedding vector
+   * @param document Document data to create
+   */
+  async createDocument(document: Omit<InsertCurriculumDocument, "vectorEmbedding">): Promise<CurriculumDocument> {
+    try {
+      // First create the document without the embedding
+      const newDocument = await storage.createCurriculumDocument({
+        ...document,
+        vectorEmbedding: undefined
+      });
+      
+      // Then generate and add the embedding
+      const embedding = await this.generateEmbedding(document.content);
+      
+      // Update the document with the embedding
+      const updatedDocument = await storage.updateCurriculumDocumentEmbedding(
+        newDocument.id,
+        JSON.stringify(embedding) // Store as JSON string
+      );
+      
+      return updatedDocument || newDocument;
+    } catch (error) {
+      console.error("Error creating document with embedding:", error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Generate an embedding vector for text using OpenAI's embeddings API
+   * @param text Text to generate embedding for
    */
   async generateEmbedding(text: string): Promise<number[]> {
     try {
-      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       const response = await openai.embeddings.create({
-        model: "text-embedding-3-large",
+        model: "text-embedding-ada-002",
         input: text,
-        encoding_format: "float"
       });
       
       return response.data[0].embedding;
     } catch (error) {
-      console.error("Error generating embeddings:", error);
-      throw new Error("Failed to generate document embeddings");
+      console.error("Error generating embedding:", error);
+      throw error;
     }
   }
   
   /**
-   * Create a new curriculum document with embeddings
-   * @param document The document to create
-   * @returns The created document
+   * Calculate cosine similarity between two vectors
    */
-  async createDocument(document: InsertCurriculumDocument): Promise<CurriculumDocument> {
-    try {
-      // Generate embeddings for the document content
-      const embedding = await this.generateEmbedding(document.content);
-      
-      // Store embeddings as JSON string
-      const documentWithEmbedding: InsertCurriculumDocument = {
-        ...document,
-        vectorEmbedding: JSON.stringify(embedding)
-      };
-      
-      // Create the document in storage
-      return await storage.createCurriculumDocument(documentWithEmbedding);
-    } catch (error) {
-      console.error("Error creating document with embeddings:", error);
-      throw new Error("Failed to create curriculum document");
+  private calculateCosineSimilarity(a: number[], b: number[]): number {
+    if (a.length !== b.length) {
+      throw new Error("Vectors must have the same dimensions");
     }
+    
+    let dotProduct = 0;
+    let aMagnitude = 0;
+    let bMagnitude = 0;
+    
+    for (let i = 0; i < a.length; i++) {
+      dotProduct += a[i] * b[i];
+      aMagnitude += a[i] * a[i];
+      bMagnitude += b[i] * b[i];
+    }
+    
+    aMagnitude = Math.sqrt(aMagnitude);
+    bMagnitude = Math.sqrt(bMagnitude);
+    
+    return dotProduct / (aMagnitude * bMagnitude);
   }
   
   /**
-   * Update embeddings for an existing document
-   * @param id The document ID
-   * @returns The updated document
+   * Find the most relevant documents for a query
+   * @param query User query to find documents for
+   * @param options Optional parameters to filter documents
    */
-  async updateDocumentEmbedding(id: number): Promise<CurriculumDocument | undefined> {
-    try {
-      // Get the document
-      const document = await storage.getCurriculumDocumentById(id);
-      if (!document) {
-        throw new Error(`Document with ID ${id} not found`);
-      }
-      
-      // Generate new embeddings
-      const embedding = await this.generateEmbedding(document.content);
-      
-      // Update the document with new embeddings
-      return await storage.updateCurriculumDocumentEmbedding(id, JSON.stringify(embedding));
-    } catch (error) {
-      console.error(`Error updating embeddings for document ${id}:`, error);
-      throw new Error("Failed to update document embeddings");
+  async findRelevantDocuments(
+    query: string,
+    options?: {
+      grade?: number;
+      subject?: string;
+      limit?: number;
+      similarityThreshold?: number;
     }
-  }
-  
-  /**
-   * Retrieve relevant documents based on query
-   * @param query The user's query
-   * @param grade Optional grade filter
-   * @param subject Optional subject filter
-   * @param limit Maximum number of documents to return
-   * @returns Array of relevant documents
-   */
-  async retrieveRelevantDocuments(
-    query: string, 
-    grade?: number, 
-    subject?: string,
-    limit: number = 3
   ): Promise<CurriculumDocument[]> {
     try {
-      // Generate embeddings for the query
+      // Generate embedding for the query
       const queryEmbedding = await this.generateEmbedding(query);
       
-      // Retrieve documents based on filters
-      let documents: CurriculumDocument[];
+      // Get documents based on filters
+      let documents: CurriculumDocument[] = [];
       
-      if (grade && subject) {
-        documents = await storage.getCurriculumDocumentsByGradeAndSubject(grade, subject);
-      } else if (grade) {
-        documents = await storage.getCurriculumDocumentsByGrade(grade);
-      } else if (subject) {
-        documents = await storage.getCurriculumDocumentsBySubject(subject);
+      if (options?.grade && options?.subject) {
+        documents = await storage.getCurriculumDocumentsByGradeAndSubject(
+          options.grade,
+          options.subject
+        );
+      } else if (options?.grade) {
+        documents = await storage.getCurriculumDocumentsByGrade(options.grade);
+      } else if (options?.subject) {
+        documents = await storage.getCurriculumDocumentsBySubject(options.subject);
       } else {
         documents = await storage.getCurriculumDocuments();
       }
       
-      // If no documents match filters, return empty array
-      if (documents.length === 0) {
-        return [];
+      // Calculate similarity for each document
+      const results: RagSimilarityResult[] = [];
+      
+      for (const document of documents) {
+        // Skip documents without embeddings
+        if (!document.vectorEmbedding) continue;
+        
+        // Parse the embedding from JSON string
+        const documentEmbedding = JSON.parse(document.vectorEmbedding) as number[];
+        
+        // Calculate similarity
+        const similarity = this.calculateCosineSimilarity(queryEmbedding, documentEmbedding);
+        
+        // Add to results if above threshold
+        if (!options?.similarityThreshold || similarity >= options.similarityThreshold) {
+          results.push({ document, similarity });
+        }
       }
       
-      // Search for similar documents based on query embedding
-      return await storage.searchSimilarDocuments(queryEmbedding, limit);
+      // Sort by similarity (highest first)
+      results.sort((a, b) => b.similarity - a.similarity);
+      
+      // Limit results if specified
+      const limit = options?.limit || 5;
+      const limitedResults = results.slice(0, limit);
+      
+      // Return just the documents
+      return limitedResults.map(result => result.document);
     } catch (error) {
-      console.error("Error retrieving relevant documents:", error);
-      throw new Error("Failed to retrieve curriculum documents");
+      console.error("Error finding relevant documents:", error);
+      throw error;
     }
   }
   
   /**
-   * Format documents for inclusion in AI context
-   * @param documents The documents to format
-   * @returns Formatted document content as a string
+   * Get the text content from documents to use as context
+   * @param documents List of documents to extract content from
    */
-  formatDocumentsForContext(documents: CurriculumDocument[]): { text: string, sources: any[] } {
-    // If no documents, return empty string
-    if (documents.length === 0) {
-      return { text: "", sources: [] };
-    }
+  getDocumentsText(documents: CurriculumDocument[]): string {
+    // Format documents as a combined text
+    const documentsText = documents.map(doc => {
+      return `DOCUMENT: ${doc.title} (Grade ${doc.grade}, ${doc.subject}, ${doc.documentType})
+CONTENT: ${doc.content}
+---`;
+    }).join("\n\n");
     
-    // Format each document and join with separators
-    const documentTexts = documents.map(doc => 
-      `DOCUMENT TITLE: ${doc.title}\nGRADE: ${doc.grade}\nSUBJECT: ${doc.subject}\nCONTENT:\n${doc.content}\n`
-    );
-    
-    // Create sources metadata for citation
-    const sources = documents.map(doc => ({
-      id: doc.id,
-      title: doc.title,
-      grade: doc.grade,
-      subject: doc.subject,
-      documentType: doc.documentType
-    }));
-    
-    return { 
-      text: documentTexts.join("\n---\n\n"),
-      sources
-    };
+    return documentsText;
   }
 }
 
-// Export singleton instance
-export const ragService = new RAGService();
+export const ragService = new RagService();

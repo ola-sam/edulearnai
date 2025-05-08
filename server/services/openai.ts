@@ -34,14 +34,27 @@ export async function generateTutorResponse(request: AITutorRequest): Promise<AI
   
   try {
     // Retrieve relevant curriculum documents based on the student's query and context
-    const relevantDocuments = await ragService.retrieveRelevantDocuments(
+    const relevantDocuments = await ragService.findRelevantDocuments(
       message,
-      context?.grade,
-      context?.subject
+      {
+        grade: context?.grade,
+        subject: context?.subject,
+        limit: 5,
+        similarityThreshold: 0.7
+      }
     );
     
+    // Extract document sources for citation
+    const sources = relevantDocuments.map(doc => ({
+      id: doc.id,
+      title: doc.title,
+      grade: doc.grade,
+      subject: doc.subject,
+      documentType: doc.documentType
+    }));
+    
     // Format documents for inclusion in the prompt
-    const { text: documentsText, sources } = ragService.formatDocumentsForContext(relevantDocuments);
+    const documentsText = ragService.getDocumentsText(relevantDocuments);
     
     // Create a system message with context about the student
     const systemMessage = createSystemPrompt(context, documentsText);
