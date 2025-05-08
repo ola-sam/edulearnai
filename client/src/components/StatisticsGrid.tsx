@@ -26,29 +26,29 @@ const StatisticsGrid = () => {
   if ((error || !statistics) && !isLoading) {
     // Fallback to static content if there's an error
     return (
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-        <div className="p-4 flex flex-col items-center text-center">
+      <div className="flex flex-wrap justify-center gap-10 max-w-4xl mx-auto mb-12">
+        <div className="p-4 flex flex-col items-center text-center flex-1 min-w-[150px]">
           <div className="text-4xl font-bold text-primary-600 mb-2 flex items-center">
             <span className="material-icons mr-2 text-3xl">school</span>
             10K+
           </div>
           <p className="text-gray-600">Active Students</p>
         </div>
-        <div className="p-4 flex flex-col items-center text-center">
+        <div className="p-4 flex flex-col items-center text-center flex-1 min-w-[150px]">
           <div className="text-4xl font-bold text-primary-600 mb-2 flex items-center">
-            <span className="material-icons mr-2 text-3xl">groups</span>
+            <span className="material-icons mr-2 text-3xl">chalkboard_teacher</span>
             500+
           </div>
           <p className="text-gray-600">Dedicated Teachers</p>
         </div>
-        <div className="p-4 flex flex-col items-center text-center">
+        <div className="p-4 flex flex-col items-center text-center flex-1 min-w-[150px]">
           <div className="text-4xl font-bold text-primary-600 mb-2 flex items-center">
             <span className="material-icons mr-2 text-3xl">menu_book</span>
             1000+
           </div>
           <p className="text-gray-600">Interactive Lessons</p>
         </div>
-        <div className="p-4 flex flex-col items-center text-center">
+        <div className="p-4 flex flex-col items-center text-center flex-1 min-w-[150px]">
           <div className="text-4xl font-bold text-primary-600 mb-2 flex items-center">
             <span className="material-icons mr-2 text-3xl">star</span>
             95%
@@ -61,15 +61,20 @@ const StatisticsGrid = () => {
 
   return (
     <div className="flex flex-wrap justify-center gap-10 max-w-4xl mx-auto mb-12">
-      {statistics && statistics.length > 0 && statistics.map((stat: Statistic) => (
-        <div key={stat.id} className="p-4 flex flex-col items-center text-center flex-1 min-w-[150px]">
-          <div className="text-4xl font-bold text-primary-600 mb-2 flex items-center">
-            {stat.icon && <span className="material-icons mr-2 text-3xl">{stat.icon}</span>}
-            {stat.value}
-          </div>
-          <p className="text-gray-600">{stat.name}</p>
-        </div>
-      ))}
+      {statistics && statistics.length > 0 && 
+        // Sort by display_order to ensure correct sequence
+        [...statistics]
+          .sort((a, b) => a.displayOrder - b.displayOrder)
+          .map((stat: Statistic) => (
+            <div key={stat.id} className="p-4 flex flex-col items-center text-center flex-1 min-w-[150px]">
+              <div className="text-4xl font-bold text-primary-600 mb-2 flex items-center">
+                {stat.icon && <span className="material-icons mr-2 text-3xl">{stat.icon}</span>}
+                {stat.value}
+              </div>
+              <p className="text-gray-600">{stat.name}</p>
+            </div>
+          ))
+      }
     </div>
   );
 };
