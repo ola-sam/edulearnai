@@ -15,6 +15,15 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { useAiTutor } from '@/hooks/useAiTutor';
+import AiChatSources from './AiChatSources';
+
+interface Source {
+  id: number;
+  title: string;
+  grade: number;
+  subject: string;
+  documentType: string;
+}
 
 interface ChatMessage {
   id: number;
@@ -23,6 +32,7 @@ interface ChatMessage {
   timestamp: Date;
   role: 'user' | 'assistant';
   subject: string | null;
+  sources?: Source[];
 }
 
 type AiChatModalProps = {
@@ -159,6 +169,9 @@ const AiChatModal = ({ isOpen, onClose }: AiChatModalProps) => {
                     <div className="text-xs text-gray-500 mb-1">{message.subject}</div>
                   )}
                   <p className="whitespace-pre-line break-words leading-tight sm:leading-normal">{message.content}</p>
+                  {message.role === 'assistant' && message.sources && message.sources.length > 0 && (
+                    <AiChatSources sources={message.sources} />
+                  )}
                 </div>
                 
                 {message.role === 'user' && (
