@@ -12,7 +12,11 @@ import {
   insertUserBadgeSchema, 
   insertDownloadedContentSchema,
   insertTestimonialSchema,
-  insertStatisticSchema
+  insertStatisticSchema,
+  insertVisualProjectSchema,
+  insertVisualSpriteSchema,
+  insertVisualBackgroundSchema,
+  insertSharedVisualElementSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { generateTutorResponse, type AITutorRequest } from "./services/openai";
@@ -1241,6 +1245,202 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching curriculum documents by subject:", error);
       res.status(500).json({ message: "Failed to fetch curriculum documents" });
+    }
+  });
+
+  // Visual Programming Projects routes
+  app.get("/api/visual-projects", async (req, res) => {
+    const { userId } = req.query;
+    
+    let projects;
+    if (userId) {
+      projects = await storage.getVisualProjects(parseInt(userId as string));
+    } else {
+      projects = await storage.getPublicVisualProjects();
+    }
+    
+    res.json(projects);
+  });
+  
+  app.get("/api/visual-projects/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const project = await storage.getVisualProjectById(id);
+    
+    if (!project) {
+      return res.status(404).json({ message: "Visual project not found" });
+    }
+    
+    res.json(project);
+  });
+  
+  app.post("/api/visual-projects", async (req, res) => {
+    try {
+      const projectData = insertVisualProjectSchema.parse(req.body);
+      const project = await storage.createVisualProject(projectData);
+      res.status(201).json(project);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid project data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create visual project" });
+    }
+  });
+  
+  app.put("/api/visual-projects/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const projectData = req.body;
+      
+      const project = await storage.updateVisualProject(id, projectData);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Visual project not found" });
+      }
+      
+      res.json(project);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid project data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update visual project" });
+    }
+  });
+  
+  app.delete("/api/visual-projects/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const success = await storage.deleteVisualProject(id);
+    
+    if (!success) {
+      return res.status(404).json({ message: "Visual project not found" });
+    }
+    
+    res.status(204).end();
+  });
+  
+  // Visual Programming Sprites routes
+  app.get("/api/visual-sprites", async (req, res) => {
+    const { userId } = req.query;
+    
+    let sprites;
+    if (userId) {
+      sprites = await storage.getVisualSprites(parseInt(userId as string));
+    } else {
+      sprites = await storage.getPublicVisualSprites();
+    }
+    
+    res.json(sprites);
+  });
+  
+  app.get("/api/visual-sprites/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const sprite = await storage.getVisualSpriteById(id);
+    
+    if (!sprite) {
+      return res.status(404).json({ message: "Visual sprite not found" });
+    }
+    
+    res.json(sprite);
+  });
+  
+  app.post("/api/visual-sprites", async (req, res) => {
+    try {
+      const spriteData = insertVisualSpriteSchema.parse(req.body);
+      const sprite = await storage.createVisualSprite(spriteData);
+      res.status(201).json(sprite);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid sprite data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create visual sprite" });
+    }
+  });
+  
+  app.delete("/api/visual-sprites/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const success = await storage.deleteVisualSprite(id);
+    
+    if (!success) {
+      return res.status(404).json({ message: "Visual sprite not found" });
+    }
+    
+    res.status(204).end();
+  });
+  
+  // Visual Programming Backgrounds routes
+  app.get("/api/visual-backgrounds", async (req, res) => {
+    const { userId } = req.query;
+    
+    let backgrounds;
+    if (userId) {
+      backgrounds = await storage.getVisualBackgrounds(parseInt(userId as string));
+    } else {
+      backgrounds = await storage.getPublicVisualBackgrounds();
+    }
+    
+    res.json(backgrounds);
+  });
+  
+  app.get("/api/visual-backgrounds/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const background = await storage.getVisualBackgroundById(id);
+    
+    if (!background) {
+      return res.status(404).json({ message: "Visual background not found" });
+    }
+    
+    res.json(background);
+  });
+  
+  app.post("/api/visual-backgrounds", async (req, res) => {
+    try {
+      const backgroundData = insertVisualBackgroundSchema.parse(req.body);
+      const background = await storage.createVisualBackground(backgroundData);
+      res.status(201).json(background);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid background data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create visual background" });
+    }
+  });
+  
+  app.delete("/api/visual-backgrounds/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const success = await storage.deleteVisualBackground(id);
+    
+    if (!success) {
+      return res.status(404).json({ message: "Visual background not found" });
+    }
+    
+    res.status(204).end();
+  });
+  
+  // Shared Visual Elements routes
+  app.get("/api/shared-visual-elements", async (req, res) => {
+    const { category, type } = req.query;
+    
+    let elements;
+    if (category) {
+      elements = await storage.getSharedVisualElementsByCategory(category as string);
+    } else if (type) {
+      elements = await storage.getSharedVisualElementsByType(type as string);
+    } else {
+      elements = await storage.getSharedVisualElements();
+    }
+    
+    res.json(elements);
+  });
+  
+  app.post("/api/shared-visual-elements", async (req, res) => {
+    try {
+      const elementData = insertSharedVisualElementSchema.parse(req.body);
+      const element = await storage.createSharedVisualElement(elementData);
+      res.status(201).json(element);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid element data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create shared visual element" });
     }
   });
 

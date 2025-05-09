@@ -20,6 +20,10 @@ import {
   testimonials,
   statistics,
   curriculumDocuments,
+  visualProjects,
+  visualSprites,
+  visualBackgrounds,
+  sharedVisualElements,
   type User,
   type InsertUser,
   type Subject,
@@ -61,7 +65,15 @@ import {
   type Statistic,
   type InsertStatistic,
   type CurriculumDocument,
-  type InsertCurriculumDocument
+  type InsertCurriculumDocument,
+  type VisualProject,
+  type InsertVisualProject,
+  type VisualSprite,
+  type InsertVisualSprite,
+  type VisualBackground,
+  type InsertVisualBackground,
+  type SharedVisualElement,
+  type InsertSharedVisualElement
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -197,6 +209,34 @@ export interface IStorage {
   createCurriculumDocument(document: InsertCurriculumDocument): Promise<CurriculumDocument>;
   updateCurriculumDocumentEmbedding(id: number, embedding: string): Promise<CurriculumDocument | undefined>;
   searchSimilarDocuments(embedding: number[], limit?: number): Promise<CurriculumDocument[]>;
+  
+  // Visual Programming Project operations
+  getVisualProjects(userId?: number): Promise<VisualProject[]>;
+  getVisualProjectById(id: number): Promise<VisualProject | undefined>;
+  getPublicVisualProjects(limit?: number): Promise<VisualProject[]>;
+  createVisualProject(project: InsertVisualProject): Promise<VisualProject>;
+  updateVisualProject(id: number, project: Partial<InsertVisualProject>): Promise<VisualProject | undefined>;
+  deleteVisualProject(id: number): Promise<boolean>;
+  
+  // Visual Sprite operations
+  getVisualSprites(userId?: number): Promise<VisualSprite[]>;
+  getVisualSpriteById(id: number): Promise<VisualSprite | undefined>;
+  getPublicVisualSprites(): Promise<VisualSprite[]>;
+  createVisualSprite(sprite: InsertVisualSprite): Promise<VisualSprite>;
+  deleteVisualSprite(id: number): Promise<boolean>;
+  
+  // Visual Background operations
+  getVisualBackgrounds(userId?: number): Promise<VisualBackground[]>;
+  getVisualBackgroundById(id: number): Promise<VisualBackground | undefined>;
+  getPublicVisualBackgrounds(): Promise<VisualBackground[]>;
+  createVisualBackground(background: InsertVisualBackground): Promise<VisualBackground>;
+  deleteVisualBackground(id: number): Promise<boolean>;
+  
+  // Shared Visual Element operations
+  getSharedVisualElements(): Promise<SharedVisualElement[]>;
+  getSharedVisualElementsByCategory(category: string): Promise<SharedVisualElement[]>;
+  getSharedVisualElementsByType(type: string): Promise<SharedVisualElement[]>;
+  createSharedVisualElement(element: InsertSharedVisualElement): Promise<SharedVisualElement>;
 }
 
 export class MemStorage implements IStorage {

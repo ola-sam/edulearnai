@@ -848,3 +848,27 @@ export const announcementsRelations = relations(announcements, ({ one }) => ({
     references: [classes.id]
   })
 }));
+
+// Visual Project relations
+export const visualProjectsRelations = relations(visualProjects, ({ one }) => ({
+  user: one(users, {
+    fields: [visualProjects.userId],
+    references: [users.id]
+  })
+}));
+
+// Visual Sprite relations
+export const visualSpritesRelations = relations(visualSprites, ({ one }) => ({
+  user: one(users, {
+    fields: [visualSprites.userId],
+    references: [users.id]
+  })
+}));
+
+// Visual Background relations
+export const visualBackgroundsRelations = relations(visualBackgrounds, ({ one }) => ({
+  user: one(users, {
+    fields: [visualBackgrounds.userId],
+    references: [users.id]
+  })
+}));
