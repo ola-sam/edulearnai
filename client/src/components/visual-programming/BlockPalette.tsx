@@ -42,6 +42,38 @@ const BlockPalette: React.FC<BlockPaletteProps> = ({ onBlockSelected }) => {
         next: null
       },
       {
+        id: "motion_move_up_block",
+        type: "motion_move_up",
+        category: "motion",
+        label: "Move up",
+        color: "#4C97FF",
+        next: null
+      },
+      {
+        id: "motion_move_down_block",
+        type: "motion_move_down",
+        category: "motion",
+        label: "Move down",
+        color: "#4C97FF",
+        next: null
+      },
+      {
+        id: "motion_move_left_block",
+        type: "motion_move_left",
+        category: "motion",
+        label: "Move left",
+        color: "#4C97FF",
+        next: null
+      },
+      {
+        id: "motion_move_right_block",
+        type: "motion_move_right",
+        category: "motion",
+        label: "Move right",
+        color: "#4C97FF",
+        next: null
+      },
+      {
         id: "motion_turn_right_block",
         type: "motion_turn_right",
         category: "motion",
