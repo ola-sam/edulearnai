@@ -55,6 +55,19 @@ const PlayArea: React.FC<PlayAreaProps> = ({
     }
   }, [characters]);
   
+  // Calculate grid cell size for 30x30 grid
+  const getGridCellSize = () => {
+    if (canvasRef.current) {
+      const width = canvasRef.current.clientWidth;
+      const height = canvasRef.current.clientHeight;
+      return {
+        width: width / 30,
+        height: height / 30
+      };
+    }
+    return { width: 10, height: 10 }; // Default fallback
+  };
+  
   // Log character states when they change for debugging
   useEffect(() => {
     console.log("Character states updated:", characterStates);
@@ -185,15 +198,25 @@ const PlayArea: React.FC<PlayAreaProps> = ({
     
     switch (block.type) {
       case "motion_move_steps":
-        const steps = block.properties?.steps as number || 10;
+        // Convert steps to grid-based coordinate system
+        // Use a smaller multiplier to make each step appropriate for grid
+        const stepSize = 1; // 1 step = 1 grid cell
+        const steps = (block.properties?.steps as number || 10) * stepSize;
+        
         await new Promise<void>(resolve => {
           // Animate the movement smoothly
           const startTime = Date.now();
           const duration = 500; // animation duration in ms
           const startState = {...characterStates.find(state => state.id === characterId)!};
           const radians = (startState.rotation - 90) * (Math.PI / 180);
+          
+          // Calculate target position on grid
           const targetX = startState.x + steps * Math.cos(radians);
           const targetY = startState.y + steps * Math.sin(radians);
+          
+          // Constrain movement to stay within reasonable grid boundaries
+          const constrainedX = Math.min(Math.max(targetX, -15), 15);
+          const constrainedY = Math.min(Math.max(targetY, -15), 15);
           
           const animateStep = () => {
             const elapsed = Date.now() - startTime;
@@ -204,8 +227,8 @@ const PlayArea: React.FC<PlayAreaProps> = ({
                 if (state.id === characterId) {
                   return {
                     ...state,
-                    x: startState.x + (targetX - startState.x) * progress,
-                    y: startState.y + (targetY - startState.y) * progress
+                    x: startState.x + (constrainedX - startState.x) * progress,
+                    y: startState.y + (constrainedY - startState.y) * progress
                   };
                 }
                 return state;
@@ -296,13 +319,20 @@ const PlayArea: React.FC<PlayAreaProps> = ({
         break;
         
       case "motion_goto_xy":
-        const x = block.properties?.x as number || 0;
-        const y = block.properties?.y as number || 0;
+        // Use grid coordinates (0-29 for both x and y)
+        // Convert from grid coordinates to pixel positions
+        const gridX = Math.min(Math.max(Math.round(block.properties?.x as number || 0), -15), 15);
+        const gridY = Math.min(Math.max(Math.round(block.properties?.y as number || 0), -15), 15);
+        
         await new Promise<void>(resolve => {
           // Animate the movement smoothly
           const startTime = Date.now();
           const duration = 500; // animation duration in ms
           const startState = {...characterStates.find(state => state.id === characterId)!};
+          
+          // Target x,y in our coordinate system (center is 0,0)
+          const targetX = gridX;
+          const targetY = gridY;
           
           const animateStep = () => {
             const elapsed = Date.now() - startTime;
@@ -313,8 +343,8 @@ const PlayArea: React.FC<PlayAreaProps> = ({
                 if (state.id === characterId) {
                   return {
                     ...state,
-                    x: startState.x + (x - startState.x) * progress,
-                    y: startState.y + (y - startState.y) * progress
+                    x: startState.x + (targetX - startState.x) * progress,
+                    y: startState.y + (targetY - startState.y) * progress
                   };
                 }
                 return state;
@@ -454,10 +484,31 @@ const PlayArea: React.FC<PlayAreaProps> = ({
         )
       ))}
       
+      {/* 30x30 Grid System */}
+      <div className="absolute inset-0 pointer-events-none z-5">
+        {/* Generate 30 vertical grid lines */}
+        {Array.from({ length: 31 }).map((_, i) => (
+          <div 
+            key={`v-${i}`} 
+            className="absolute top-0 bottom-0 border-l border-gray-300 dark:border-gray-700" 
+            style={{ left: `${(i / 30) * 100}%`, opacity: i % 5 === 0 ? 0.4 : 0.2 }}
+          ></div>
+        ))}
+        
+        {/* Generate 30 horizontal grid lines */}
+        {Array.from({ length: 31 }).map((_, i) => (
+          <div 
+            key={`h-${i}`} 
+            className="absolute left-0 right-0 border-t border-gray-300 dark:border-gray-700" 
+            style={{ top: `${(i / 30) * 100}%`, opacity: i % 5 === 0 ? 0.4 : 0.2 }}
+          ></div>
+        ))}
+      </div>
+      
       {/* Coordinate grid for reference (only in edit mode) */}
-      <div className="absolute inset-0 pointer-events-none z-10 opacity-20">
-        <div className="absolute left-1/2 top-0 bottom-0 border-l border-black dark:border-white"></div>
-        <div className="absolute top-1/2 left-0 right-0 border-t border-black dark:border-white"></div>
+      <div className="absolute inset-0 pointer-events-none z-10 opacity-30">
+        <div className="absolute left-1/2 top-0 bottom-0 border-l-2 border-black dark:border-white"></div>
+        <div className="absolute top-1/2 left-0 right-0 border-t-2 border-black dark:border-white"></div>
       </div>
     </div>
   );
