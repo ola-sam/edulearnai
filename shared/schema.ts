@@ -498,6 +498,97 @@ export const insertAnnouncementSchema = createInsertSchema(announcements).pick({
 export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
 export type Announcement = typeof announcements.$inferSelect;
 
+// Visual Programming Projects
+export const visualProjects = pgTable("visual_projects", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  thumbnail: text("thumbnail"),
+  blocks: jsonb("blocks").notNull(), // JSON representation of the programming blocks
+  assets: jsonb("assets"), // JSON representation of project assets (sprites, backgrounds, etc.)
+  isPublic: boolean("is_public").default(false).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertVisualProjectSchema = createInsertSchema(visualProjects).pick({
+  userId: true,
+  title: true,
+  description: true,
+  thumbnail: true,
+  blocks: true,
+  assets: true,
+  isPublic: true,
+});
+
+export type InsertVisualProject = z.infer<typeof insertVisualProjectSchema>;
+export type VisualProject = typeof visualProjects.$inferSelect;
+
+// Visual Programming Sprites
+export const visualSprites = pgTable("visual_sprites", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  name: text("name").notNull(),
+  imageUrl: text("image_url").notNull(),
+  isPublic: boolean("is_public").default(false).notNull(),
+  tags: jsonb("tags"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertVisualSpriteSchema = createInsertSchema(visualSprites).pick({
+  userId: true,
+  name: true,
+  imageUrl: true,
+  isPublic: true,
+  tags: true,
+});
+
+export type InsertVisualSprite = z.infer<typeof insertVisualSpriteSchema>;
+export type VisualSprite = typeof visualSprites.$inferSelect;
+
+// Visual Programming Backgrounds
+export const visualBackgrounds = pgTable("visual_backgrounds", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  name: text("name").notNull(),
+  imageUrl: text("image_url").notNull(),
+  isPublic: boolean("is_public").default(false).notNull(),
+  tags: jsonb("tags"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertVisualBackgroundSchema = createInsertSchema(visualBackgrounds).pick({
+  userId: true,
+  name: true,
+  imageUrl: true,
+  isPublic: true,
+  tags: true,
+});
+
+export type InsertVisualBackground = z.infer<typeof insertVisualBackgroundSchema>;
+export type VisualBackground = typeof visualBackgrounds.$inferSelect;
+
+// Shared Visual Project Elements
+export const sharedVisualElements = pgTable("shared_visual_elements", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), 
+  type: text("type").notNull(), // 'sprite', 'background', 'sound', 'block'
+  content: jsonb("content").notNull(),
+  category: text("category").notNull(), // e.g., 'animals', 'vehicles', 'nature', etc.
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertSharedVisualElementSchema = createInsertSchema(sharedVisualElements).pick({
+  name: true,
+  type: true,
+  content: true,
+  category: true,
+});
+
+export type InsertSharedVisualElement = z.infer<typeof insertSharedVisualElementSchema>;
+export type SharedVisualElement = typeof sharedVisualElements.$inferSelect;
+
 // Testimonials
 export const testimonials = pgTable("testimonials", {
   id: serial("id").primaryKey(),
