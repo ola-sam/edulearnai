@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Astronaut Character -->
+  <g>
+    <!-- Helmet -->
+    <ellipse cx="100" cy="70" rx="35" ry="40" fill="#E0E0E0" stroke="#9E9E9E" stroke-width="3" opacity="0.7"/>
+    <path d="M65,80 C65,100 80,130 100,130 C120,130 135,100 135,80 Z" fill="#F5F5F5" stroke="#9E9E9E" stroke-width="3"/>
+    
+    <!-- Visor -->
+    <path d="M80,70 C80,55 120,55 120,70 C120,85 105,95 100,95 C95,95 80,85 80,70 Z" fill="#42A5F5" stroke="#1E88E5" stroke-width="2" opacity="0.8"/>
+    
+    <!-- Space Suit -->
+    <path d="M70,80 C70,120 75,145 100,145 C125,145 130,120 130,80 Z" fill="#FFF" stroke="#9E9E9E" stroke-width="3"/>
+    
+    <!-- Backpack -->
+    <rect x="75" y="90" width="50" height="40" rx="5" ry="5" fill="#BDBDBD" stroke="#9E9E9E" stroke-width="2"/>
+    
+    <!-- Arms -->
+    <path d="M70,90 C60,95 50,110 55,130" fill="none" stroke="#FFF" stroke-width="10" stroke-linecap="round"/>
+    <path d="M130,90 C140,95 150,110 145,130" fill="none" stroke="#FFF" stroke-width="10" stroke-linecap="round"/>
+    
+    <!-- Hands -->
+    <circle cx="55" cy="130" r="8" fill="#BDBDBD" stroke="#9E9E9E" stroke-width="2"/>
+    <circle cx="145" cy="130" r="8" fill="#BDBDBD" stroke="#9E9E9E" stroke-width="2"/>
+    
+    <!-- Legs -->
+    <path d="M85,145 C80,150 75,175 85,180" fill="none" stroke="#FFF" stroke-width="12" stroke-linecap="round"/>
+    <path d="M115,145 C120,150 125,175 115,180" fill="none" stroke="#FFF" stroke-width="12" stroke-linecap="round"/>
+    
+    <!-- Boots -->
+    <ellipse cx="85" cy="180" rx="10" ry="5" fill="#BDBDBD" stroke="#9E9E9E" stroke-width="2"/>
+    <ellipse cx="115" cy="180" rx="10" ry="5" fill="#BDBDBD" stroke="#9E9E9E" stroke-width="2"/>
+    
+    <!-- Details -->
+    <rect x="90" y="100" width="20" height="25" rx="2" ry="2" fill="#E0E0E0" stroke="#9E9E9E" stroke-width="1"/>
+    <circle cx="100" cy="110" r="3" fill="#F44336"/>
+    <circle cx="100" cy="120" r="3" fill="#4CAF50"/>
+    <rect x="75" y="90" width="10" height="5" fill="#BDBDBD" stroke="#9E9E9E" stroke-width="1"/>
+    <rect x="115" y="90" width="10" height="5" fill="#BDBDBD" stroke="#9E9E9E" stroke-width="1"/>
+    
+    <!-- USA Flag -->
+    <rect x="75" y="70" width="12" height="8" fill="#F44336" stroke="#9E9E9E" stroke-width="0.5"/>
+  </g>
+</svg>

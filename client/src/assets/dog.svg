@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Dog Character -->
+  <g>
+    <!-- Body -->
+    <ellipse cx="100" cy="120" rx="45" ry="30" fill="#8D6E63" stroke="#5D4037" stroke-width="2"/>
+    
+    <!-- Head -->
+    <circle cx="100" cy="75" r="35" fill="#A1887F" stroke="#5D4037" stroke-width="2"/>
+    
+    <!-- Ears -->
+    <path d="M65,65 Q60,50 75,60 Z" fill="#8D6E63" stroke="#5D4037" stroke-width="2"/>
+    <path d="M135,65 Q140,50 125,60 Z" fill="#8D6E63" stroke="#5D4037" stroke-width="2"/>
+    
+    <!-- Eyes -->
+    <ellipse cx="85" cy="70" rx="5" ry="7" fill="white" stroke="#5D4037" stroke-width="1"/>
+    <ellipse cx="115" cy="70" rx="5" ry="7" fill="white" stroke="#5D4037" stroke-width="1"/>
+    <circle cx="85" cy="70" r="2" fill="#5D4037"/>
+    <circle cx="115" cy="70" r="2" fill="#5D4037"/>
+    
+    <!-- Nose -->
+    <ellipse cx="100" cy="85" rx="10" ry="6" fill="#6D4C41" stroke="#5D4037" stroke-width="1"/>
+    
+    <!-- Mouth -->
+    <path d="M90,95 C95,105 105,105 110,95" fill="none" stroke="#5D4037" stroke-width="1.5" stroke-linecap="round"/>
+    
+    <!-- Tongue -->
+    <ellipse cx="100" cy="100" rx="5" ry="3" fill="#F06292"/>
+    
+    <!-- Spots -->
+    <ellipse cx="70" cy="100" rx="12" ry="10" fill="#795548" stroke="none"/>
+    <ellipse cx="120" cy="110" rx="15" ry="12" fill="#795548" stroke="none"/>
+    
+    <!-- Front Legs -->
+    <path d="M75,120 C70,130 70,145 75,150" fill="none" stroke="#5D4037" stroke-width="6" stroke-linecap="round"/>
+    <path d="M125,120 C130,130 130,145 125,150" fill="none" stroke="#5D4037" stroke-width="6" stroke-linecap="round"/>
+    
+    <!-- Back Legs -->
+    <path d="M85,145 C80,150 80,165 85,170" fill="none" stroke="#5D4037" stroke-width="6" stroke-linecap="round"/>
+    <path d="M115,145 C120,150 120,165 115,170" fill="none" stroke="#5D4037" stroke-width="6" stroke-linecap="round"/>
+    
+    <!-- Tail -->
+    <path d="M140,110 C155,95 150,85 145,80" fill="none" stroke="#8D6E63" stroke-width="6" stroke-linecap="round"/>
+    
+    <!-- Collar -->
+    <path d="M80,95 C90,105 110,105 120,95" fill="none" stroke="#F44336" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="100" cy="103" r="3" fill="#FFC107" stroke="#5D4037" stroke-width="0.5"/>
+  </g>
+</svg>

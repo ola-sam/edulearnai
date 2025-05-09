@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Dinosaur body - friendly T-Rex -->
+  <g>
+    <!-- Body -->
+    <path d="M140,90 C150,60 130,40 100,40 C70,40 60,60 70,90 L60,120 C55,130 60,150 80,160 L100,165 L120,160 C140,150 145,130 140,120 Z" fill="#7CB342" stroke="#4E6B23" stroke-width="3"/>
+    
+    <!-- Head -->
+    <path d="M70,90 C65,80 70,65 85,60 C100,55 120,60 125,70 C130,80 125,90 115,95 Z" fill="#9CCC65" stroke="#4E6B23" stroke-width="3"/>
+    
+    <!-- Mouth -->
+    <path d="M75,78 C80,75 100,75 105,78" fill="none" stroke="#4E6B23" stroke-width="2" stroke-linecap="round"/>
+    
+    <!-- Eye -->
+    <circle cx="95" cy="70" r="5" fill="white" stroke="#4E6B23" stroke-width="2"/>
+    <circle cx="95" cy="70" r="2" fill="#4E6B23"/>
+    
+    <!-- Spikes -->
+    <path d="M100,40 L104,30 L108,40 L112,30 L116,40 L120,30 L124,40" fill="#9CCC65" stroke="#4E6B23" stroke-width="2"/>
+    
+    <!-- Tail -->
+    <path d="M60,120 C40,125 30,120 20,110 C15,105 10,100 15,95 C20,90 25,95 30,100 C40,110 50,110 60,120" fill="#7CB342" stroke="#4E6B23" stroke-width="3"/>
+    
+    <!-- Arms -->
+    <path d="M100,80 C95,85 90,95 95,100" fill="none" stroke="#4E6B23" stroke-width="3" stroke-linecap="round"/>
+    <path d="M115,80 C120,85 122,95 117,100" fill="none" stroke="#4E6B23" stroke-width="3" stroke-linecap="round"/>
+    
+    <!-- Legs -->
+    <path d="M85,150 C80,160 80,170 85,180 C90,185 100,185 105,175 C110,165 105,155 100,150" fill="#9CCC65" stroke="#4E6B23" stroke-width="3"/>
+    <path d="M115,150 C120,160 120,170 115,180 C110,185 100,185 95,175 C90,165 95,155 100,150" fill="#9CCC65" stroke="#4E6B23" stroke-width="3"/>
+  </g>
+</svg>
