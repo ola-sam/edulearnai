@@ -140,12 +140,16 @@ const BlockPalette: React.FC<BlockPaletteProps> = ({ onBlockSelected }) => {
   // Function to handle block selection
   const handleBlockClick = (block: Block) => {
     // Create a new block with a unique ID to avoid duplicate IDs
+    const newBlockId = uuidv4();
     const newBlock: Block = {
       ...block,
-      id: uuidv4(),
+      id: newBlockId,
       children: block.children ? [] : undefined
     };
     onBlockSelected(newBlock);
+    
+    // Log the new block for debugging
+    console.log("Added new block:", newBlock);
   };
 
   // Render a single block

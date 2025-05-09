@@ -4,44 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, CheckCircle } from "lucide-react";
 
-// Default characters if none are provided from the server
-const DEFAULT_CHARACTERS: Character[] = [
-  {
-    id: 1,
-    name: "Cat",
-    imageUrl: "https://assets.scratch.mit.edu/618be8d160ded6f99a611aed_static_cat.svg",
-    isPublic: true,
-    tags: ["animal", "pet"]
-  },
-  {
-    id: 2,
-    name: "Dog",
-    imageUrl: "https://assets.scratch.mit.edu/618be8d160ded6f99a611aed_static_dog.svg",
-    isPublic: true,
-    tags: ["animal", "pet"]
-  },
-  {
-    id: 3,
-    name: "Dinosaur",
-    imageUrl: "https://assets.scratch.mit.edu/618be8d160ded6f99a611aed_static_dino.svg",
-    isPublic: true,
-    tags: ["animal", "prehistoric"]
-  },
-  {
-    id: 4,
-    name: "Robot",
-    imageUrl: "https://assets.scratch.mit.edu/618be8d160ded6f99a611aed_static_robot.svg",
-    isPublic: true,
-    tags: ["technology", "toy"]
-  },
-  {
-    id: 5,
-    name: "Astronaut",
-    imageUrl: "https://assets.scratch.mit.edu/618be8d160ded6f99a611aed_static_astronaut.svg",
-    isPublic: true,
-    tags: ["person", "space"]
-  }
-];
+// No longer needed since we're getting characters from the database
 
 interface CharacterSelectionProps {
   characters: Character[];
@@ -56,8 +19,8 @@ const CharacterSelection: React.FC<CharacterSelectionProps> = ({
   onAddCharacter,
   onRemoveCharacter
 }) => {
-  // Use default characters if none are provided
-  const displayCharacters = characters.length > 0 ? characters : DEFAULT_CHARACTERS;
+  // Just use the characters provided from the database
+  const displayCharacters = characters;
 
   return (
     <ScrollArea className="h-[300px] pr-4">

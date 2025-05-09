@@ -12,8 +12,50 @@ interface CanvasProps {
 }
 
 const Canvas: React.FC<CanvasProps> = ({ blocks, onRemoveBlock, onUpdateBlock }) => {
+  // Function to get the previous block in the sequence
+  const findPreviousBlock = (currentBlock: Block): Block | null => {
+    for (const block of blocks) {
+      if (block.next === currentBlock.id) {
+        return block;
+      }
+    }
+    return null;
+  };
+
+  // Connect blocks in sequence when rendering
+  React.useEffect(() => {
+    // Get all blocks that are not already connected
+    const nonEventBlocks = blocks.filter(block => block.type !== "events_when_start" && !findPreviousBlock(block));
+    const eventBlocks = blocks.filter(block => block.type === "events_when_start");
+    
+    if (nonEventBlocks.length > 0 && eventBlocks.length > 0) {
+      // Find the last block in each event block's chain
+      eventBlocks.forEach(eventBlock => {
+        let lastBlock = eventBlock;
+        // Find the last block in the chain
+        while (lastBlock.next) {
+          const nextBlock = blocks.find(block => block.id === lastBlock.next);
+          if (!nextBlock) break;
+          lastBlock = nextBlock;
+        }
+        
+        // Connect the first non-connected block to the last block in the chain
+        if (nonEventBlocks.length > 0) {
+          const updatedLastBlock = { ...lastBlock, next: nonEventBlocks[0].id };
+          onUpdateBlock(updatedLastBlock);
+          
+          // Log the connection for debugging
+          console.log(`Connected ${lastBlock.type} (${lastBlock.id}) to ${nonEventBlocks[0].type} (${nonEventBlocks[0].id})`);
+        }
+      });
+    }
+  }, [blocks]);
+  
   // Helper function to render a single block
   const renderBlock = (block: Block) => {
+    // Find the next block in the sequence, if any
+    const nextBlock = block.next ? blocks.find(b => b.id === block.next) : null;
+    
     return (
       <div 
         key={block.id}
@@ -84,6 +126,13 @@ const Canvas: React.FC<CanvasProps> = ({ blocks, onRemoveBlock, onUpdateBlock })
                 Drag blocks here
               </div>
             )}
+          </div>
+        )}
+        
+        {/* Visually indicate connection to next block */}
+        {nextBlock && !block.children && (
+          <div className="w-full flex justify-center">
+            <div className="w-0.5 h-4 bg-gray-300"></div>
           </div>
         )}
       </div>

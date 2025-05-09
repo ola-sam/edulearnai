@@ -54,10 +54,12 @@ const PlayArea: React.FC<PlayAreaProps> = ({
 
   // Execute blocks when isPlaying changes to true
   useEffect(() => {
+    console.log("isPlaying changed:", isPlaying, "isExecuting:", isExecuting);
     if (isPlaying && !isExecuting) {
+      console.log("Starting execution of blocks");
       executeBlocks();
     }
-  }, [isPlaying, blocks]);
+  }, [isPlaying]);
 
   // Helper to get the execution starting blocks (event blocks)
   const getStartingBlocks = () => {
@@ -157,69 +159,155 @@ const PlayArea: React.FC<PlayAreaProps> = ({
     
     const characterId = characterStates[0].id;
     
+    console.log(`Executing block: ${block.type}`, block.properties);
+    
     switch (block.type) {
       case "motion_move_steps":
         const steps = block.properties?.steps as number || 10;
-        setCharacterStates(prevStates => 
-          prevStates.map(state => {
-            if (state.id === characterId) {
-              const radians = (state.rotation - 90) * (Math.PI / 180);
-              return {
-                ...state,
-                x: state.x + steps * Math.cos(radians),
-                y: state.y + steps * Math.sin(radians)
-              };
+        await new Promise<void>(resolve => {
+          // Animate the movement smoothly
+          const startTime = Date.now();
+          const duration = 500; // animation duration in ms
+          const startState = {...characterStates.find(state => state.id === characterId)!};
+          const radians = (startState.rotation - 90) * (Math.PI / 180);
+          const targetX = startState.x + steps * Math.cos(radians);
+          const targetY = startState.y + steps * Math.sin(radians);
+          
+          const animateStep = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            setCharacterStates(prevStates => 
+              prevStates.map(state => {
+                if (state.id === characterId) {
+                  return {
+                    ...state,
+                    x: startState.x + (targetX - startState.x) * progress,
+                    y: startState.y + (targetY - startState.y) * progress
+                  };
+                }
+                return state;
+              })
+            );
+            
+            if (progress < 1) {
+              requestAnimationFrame(animateStep);
+            } else {
+              resolve();
             }
-            return state;
-          })
-        );
+          };
+          
+          requestAnimationFrame(animateStep);
+        });
         break;
         
       case "motion_turn_right":
         const degreesRight = block.properties?.degrees as number || 15;
-        setCharacterStates(prevStates => 
-          prevStates.map(state => {
-            if (state.id === characterId) {
-              return {
-                ...state,
-                rotation: state.rotation + degreesRight
-              };
+        await new Promise<void>(resolve => {
+          // Animate the rotation smoothly
+          const startTime = Date.now();
+          const duration = 300; // animation duration in ms
+          const startState = {...characterStates.find(state => state.id === characterId)!};
+          const targetRotation = startState.rotation + degreesRight;
+          
+          const animateStep = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            setCharacterStates(prevStates => 
+              prevStates.map(state => {
+                if (state.id === characterId) {
+                  return {
+                    ...state,
+                    rotation: startState.rotation + (targetRotation - startState.rotation) * progress
+                  };
+                }
+                return state;
+              })
+            );
+            
+            if (progress < 1) {
+              requestAnimationFrame(animateStep);
+            } else {
+              resolve();
             }
-            return state;
-          })
-        );
+          };
+          
+          requestAnimationFrame(animateStep);
+        });
         break;
         
       case "motion_turn_left":
         const degreesLeft = block.properties?.degrees as number || 15;
-        setCharacterStates(prevStates => 
-          prevStates.map(state => {
-            if (state.id === characterId) {
-              return {
-                ...state,
-                rotation: state.rotation - degreesLeft
-              };
+        await new Promise<void>(resolve => {
+          // Animate the rotation smoothly
+          const startTime = Date.now();
+          const duration = 300; // animation duration in ms
+          const startState = {...characterStates.find(state => state.id === characterId)!};
+          const targetRotation = startState.rotation - degreesLeft;
+          
+          const animateStep = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            setCharacterStates(prevStates => 
+              prevStates.map(state => {
+                if (state.id === characterId) {
+                  return {
+                    ...state,
+                    rotation: startState.rotation + (targetRotation - startState.rotation) * progress
+                  };
+                }
+                return state;
+              })
+            );
+            
+            if (progress < 1) {
+              requestAnimationFrame(animateStep);
+            } else {
+              resolve();
             }
-            return state;
-          })
-        );
+          };
+          
+          requestAnimationFrame(animateStep);
+        });
         break;
         
       case "motion_goto_xy":
         const x = block.properties?.x as number || 0;
         const y = block.properties?.y as number || 0;
-        setCharacterStates(prevStates => 
-          prevStates.map(state => {
-            if (state.id === characterId) {
-              return {
-                ...state,
-                x,
-                y
-              };
+        await new Promise<void>(resolve => {
+          // Animate the movement smoothly
+          const startTime = Date.now();
+          const duration = 500; // animation duration in ms
+          const startState = {...characterStates.find(state => state.id === characterId)!};
+          
+          const animateStep = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            setCharacterStates(prevStates => 
+              prevStates.map(state => {
+                if (state.id === characterId) {
+                  return {
+                    ...state,
+                    x: startState.x + (x - startState.x) * progress,
+                    y: startState.y + (y - startState.y) * progress
+                  };
+                }
+                return state;
+              })
+            );
+            
+            if (progress < 1) {
+              requestAnimationFrame(animateStep);
+            } else {
+              resolve();
             }
-            return state;
-          })
-        );
+          };
+          
+          requestAnimationFrame(animateStep);
+        });
         break;
         
       case "looks_say":
@@ -228,6 +316,8 @@ const PlayArea: React.FC<PlayAreaProps> = ({
           ...prev,
           [characterId]: { type: "say", text: sayMessage }
         }));
+        // Keep the speech bubble visible for a while
+        await new Promise(resolve => setTimeout(resolve, 1000));
         break;
         
       case "looks_think":
@@ -236,6 +326,8 @@ const PlayArea: React.FC<PlayAreaProps> = ({
           ...prev,
           [characterId]: { type: "think", text: thinkMessage }
         }));
+        // Keep the thought bubble visible for a while
+        await new Promise(resolve => setTimeout(resolve, 1000));
         break;
         
       case "looks_show":
@@ -250,6 +342,7 @@ const PlayArea: React.FC<PlayAreaProps> = ({
             return state;
           })
         );
+        await new Promise(resolve => setTimeout(resolve, 300));
         break;
         
       case "looks_hide":
@@ -264,6 +357,7 @@ const PlayArea: React.FC<PlayAreaProps> = ({
             return state;
           })
         );
+        await new Promise(resolve => setTimeout(resolve, 300));
         break;
         
       case "control_wait":
@@ -272,10 +366,10 @@ const PlayArea: React.FC<PlayAreaProps> = ({
         break;
         
       // Other block types would be handled here
+      default:
+        console.log(`Unknown block type: ${block.type}`);
+        await new Promise(resolve => setTimeout(resolve, 200));
     }
-    
-    // Small delay between blocks for visual effect
-    await new Promise(resolve => setTimeout(resolve, 200));
   };
 
   // Render a speech bubble
