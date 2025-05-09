@@ -71,6 +71,7 @@ const Sidebar = () => {
     { href: '/dashboard', icon: 'dashboard', label: 'Dashboard' },
     { href: '/lessons', icon: 'auto_stories', label: 'My Lessons' },
     { href: '/quizzes', icon: 'quiz', label: 'Quizzes' },
+    { href: '/kids-code', icon: 'toys', label: 'KidsCode Studio' },
     { href: '/achievements', icon: 'emoji_events', label: 'Achievements' },
     { href: '/leaderboard', icon: 'leaderboard', label: 'Leaderboard' },
     { href: '/downloads', icon: 'download', label: 'Downloads' },

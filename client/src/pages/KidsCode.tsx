@@ -108,10 +108,7 @@ const KidsCode: React.FC = () => {
   // Mutations for saving projects
   const createProjectMutation = useMutation({
     mutationFn: async (project: Project) => {
-      return apiRequest("/api/visual-projects", {
-        method: "POST",
-        body: JSON.stringify(project)
-      });
+      return apiRequest("/api/visual-projects", "POST", project);
     },
     onSuccess: () => {
       toast({
@@ -134,10 +131,7 @@ const KidsCode: React.FC = () => {
   const updateProjectMutation = useMutation({
     mutationFn: async (project: Project) => {
       if (!project.id) throw new Error("Project ID is required for updates");
-      return apiRequest(`/api/visual-projects/${project.id}`, {
-        method: "PUT",
-        body: JSON.stringify(project)
-      });
+      return apiRequest(`/api/visual-projects/${project.id}`, "PUT", project);
     },
     onSuccess: () => {
       toast({
