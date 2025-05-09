@@ -55,6 +55,14 @@ function Router() {
       <ProtectedRoute path="/achievements" component={Achievements} />
       <ProtectedRoute path="/leaderboard" component={LeaderboardPage} />
       <ProtectedRoute path="/downloads" component={Downloads} />
+      <ProtectedRoute path="/kids-code" component={() => {
+        const KidsCodeComponent = React.lazy(() => import("@/pages/KidsCode"));
+        return (
+          <React.Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+            <KidsCodeComponent />
+          </React.Suspense>
+        );
+      }} />
       
       {/* Teacher routes */}
       <TeacherRoute path="/teacher/dashboard" component={TeacherDashboard} />
