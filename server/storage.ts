@@ -758,6 +758,123 @@ export class DatabaseStorage implements IStorage {
       createTableIfMissing: true 
     });
   }
+  
+  // Visual Programming Project operations
+  async getVisualProjects(userId?: number): Promise<VisualProject[]> {
+    if (userId) {
+      return await db.select().from(visualProjects).where(eq(visualProjects.userId, userId));
+    }
+    return await db.select().from(visualProjects);
+  }
+  
+  async getVisualProjectById(id: number): Promise<VisualProject | undefined> {
+    const [project] = await db.select().from(visualProjects).where(eq(visualProjects.id, id));
+    return project || undefined;
+  }
+  
+  async getPublicVisualProjects(limit?: number): Promise<VisualProject[]> {
+    let query = db.select().from(visualProjects).where(eq(visualProjects.isPublic, true));
+    if (limit) {
+      query = query.limit(limit);
+    }
+    return await query;
+  }
+  
+  async createVisualProject(project: InsertVisualProject): Promise<VisualProject> {
+    const [newProject] = await db.insert(visualProjects).values(project).returning();
+    return newProject;
+  }
+  
+  async updateVisualProject(id: number, project: Partial<InsertVisualProject>): Promise<VisualProject | undefined> {
+    const [updatedProject] = await db.update(visualProjects)
+      .set(project)
+      .where(eq(visualProjects.id, id))
+      .returning();
+    return updatedProject || undefined;
+  }
+  
+  async deleteVisualProject(id: number): Promise<boolean> {
+    const [deleted] = await db.delete(visualProjects)
+      .where(eq(visualProjects.id, id))
+      .returning({ id: visualProjects.id });
+    return !!deleted;
+  }
+  
+  // Visual Sprite operations
+  async getVisualSprites(userId?: number): Promise<VisualSprite[]> {
+    if (userId) {
+      return await db.select().from(visualSprites).where(eq(visualSprites.userId, userId));
+    }
+    return await db.select().from(visualSprites);
+  }
+  
+  async getVisualSpriteById(id: number): Promise<VisualSprite | undefined> {
+    const [sprite] = await db.select().from(visualSprites).where(eq(visualSprites.id, id));
+    return sprite || undefined;
+  }
+  
+  async getPublicVisualSprites(): Promise<VisualSprite[]> {
+    return await db.select().from(visualSprites).where(eq(visualSprites.isPublic, true));
+  }
+  
+  async createVisualSprite(sprite: InsertVisualSprite): Promise<VisualSprite> {
+    const [newSprite] = await db.insert(visualSprites).values(sprite).returning();
+    return newSprite;
+  }
+  
+  async deleteVisualSprite(id: number): Promise<boolean> {
+    const [deleted] = await db.delete(visualSprites)
+      .where(eq(visualSprites.id, id))
+      .returning({ id: visualSprites.id });
+    return !!deleted;
+  }
+  
+  // Visual Background operations
+  async getVisualBackgrounds(userId?: number): Promise<VisualBackground[]> {
+    if (userId) {
+      return await db.select().from(visualBackgrounds).where(eq(visualBackgrounds.userId, userId));
+    }
+    return await db.select().from(visualBackgrounds);
+  }
+  
+  async getVisualBackgroundById(id: number): Promise<VisualBackground | undefined> {
+    const [background] = await db.select().from(visualBackgrounds).where(eq(visualBackgrounds.id, id));
+    return background || undefined;
+  }
+  
+  async getPublicVisualBackgrounds(): Promise<VisualBackground[]> {
+    return await db.select().from(visualBackgrounds).where(eq(visualBackgrounds.isPublic, true));
+  }
+  
+  async createVisualBackground(background: InsertVisualBackground): Promise<VisualBackground> {
+    const [newBackground] = await db.insert(visualBackgrounds).values(background).returning();
+    return newBackground;
+  }
+  
+  async deleteVisualBackground(id: number): Promise<boolean> {
+    const [deleted] = await db.delete(visualBackgrounds)
+      .where(eq(visualBackgrounds.id, id))
+      .returning({ id: visualBackgrounds.id });
+    return !!deleted;
+  }
+  
+  // Shared Visual Element operations
+  async getSharedVisualElements(): Promise<SharedVisualElement[]> {
+    return await db.select().from(sharedVisualElements);
+  }
+  
+  async getSharedVisualElementsByCategory(category: string): Promise<SharedVisualElement[]> {
+    return await db.select().from(sharedVisualElements).where(eq(sharedVisualElements.category, category));
+  }
+  
+  async getSharedVisualElementsByType(type: string): Promise<SharedVisualElement[]> {
+    return await db.select().from(sharedVisualElements).where(eq(sharedVisualElements.type, type));
+  }
+  
+  async createSharedVisualElement(element: InsertSharedVisualElement): Promise<SharedVisualElement> {
+    const [newElement] = await db.insert(sharedVisualElements).values(element).returning();
+    return newElement;
+  }
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
