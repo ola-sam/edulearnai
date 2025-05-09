@@ -1,3 +1,4 @@
+@import '@fontsource/baloo-2';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -22,7 +23,14 @@
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 60 9.1% 97.8%;
   --ring: 20 14.3% 4.1%;
-  --radius: 0.5rem;
+  --radius: 0.75rem;
+  
+  /* KidsCode specific colors - bright and playful */
+  --kidscode-blue: 213 90% 65%; 
+  --kidscode-green: 145 80% 45%;
+  --kidscode-yellow: 45 93% 55%;
+  --kidscode-red: 356 90% 65%;
+  --kidscode-purple: 275 90% 65%;
   
   /* Subject-specific colors */
   --math-bg: 213 76% 56%;
@@ -107,6 +115,52 @@
 
 .font-inter {
   font-family: 'Inter', sans-serif;
+}
+
+.font-baloo {
+  font-family: 'Baloo 2', cursive;
+}
+
+/* KidsCode styles */
+.kidscode-container {
+  @apply font-baloo rounded-xl shadow-lg;
+}
+
+.kidscode-title {
+  @apply font-baloo text-3xl font-bold text-center md:text-4xl;
+}
+
+.kidscode-card {
+  @apply rounded-xl border-2 shadow-md transition-all duration-200 hover:shadow-lg;
+}
+
+.kidscode-button {
+  @apply rounded-full shadow-md transition-all duration-200 hover:shadow-lg font-baloo font-bold text-white;
+}
+
+.kidscode-block {
+  @apply rounded-lg shadow-md transition-transform cursor-pointer hover:scale-[1.03] font-baloo;
+}
+
+/* Mobile-friendly styles */
+@media (max-width: 768px) {
+  .kidscode-responsive-grid {
+    @apply grid grid-cols-1;
+  }
+}
+
+/* Hover and focus animations for kids */
+.kidscode-hover-bounce:hover {
+  animation: bounce 0.5s;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 /* Badge glow and animations */

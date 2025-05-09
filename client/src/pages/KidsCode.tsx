@@ -252,98 +252,100 @@ const KidsCode: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="container mx-auto py-4 space-y-4 kidscode-container">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-3 bg-gradient-to-r from-purple-100 to-blue-100 p-4 rounded-xl shadow-md">
         <div>
-          <h1 className="text-3xl font-bold">KidsCode Programming Studio</h1>
-          <p className="text-muted-foreground">Create interactive stories and games with blocks!</p>
+          <h1 className="kidscode-title text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">KidsCode Studio</h1>
+          <p className="text-muted-foreground font-baloo">Create your own stories and games with blocks!</p>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
-            size="sm"
+            size="lg"
             onClick={createNewProject}
+            className="kidscode-button kidscode-hover-bounce bg-gradient-to-r from-purple-500 to-indigo-500 border-none"
           >
-            <Plus className="h-4 w-4 mr-1" /> New Project
+            <Plus className="h-5 w-5 mr-1" /> New Project
           </Button>
           <Button
             variant="default"
-            size="sm"
+            size="lg"
             onClick={saveProject}
             disabled={!user || createProjectMutation.isPending || updateProjectMutation.isPending}
+            className="kidscode-button kidscode-hover-bounce bg-gradient-to-r from-blue-500 to-cyan-500 border-none"
           >
-            <Save className="h-4 w-4 mr-1" /> Save Project
+            <Save className="h-5 w-5 mr-1" /> Save Project
           </Button>
           {editMode === "code" ? (
             <Button
               variant="default"
-              size="sm"
+              size="lg"
               onClick={togglePlay}
-              className="bg-green-600 hover:bg-green-700"
+              className="kidscode-button kidscode-hover-bounce bg-gradient-to-r from-green-500 to-emerald-500 border-none"
             >
-              <Play className="h-4 w-4 mr-1" /> Run
+              <Play className="h-5 w-5 mr-1" /> Run
             </Button>
           ) : (
             <>
               {isPlaying ? (
                 <Button
                   variant="default"
-                  size="sm"
+                  size="lg"
                   onClick={togglePlay}
-                  className="bg-amber-600 hover:bg-amber-700"
+                  className="kidscode-button kidscode-hover-bounce bg-gradient-to-r from-amber-500 to-yellow-500 border-none"
                 >
-                  <Pause className="h-4 w-4 mr-1" /> Pause
+                  <Pause className="h-5 w-5 mr-1" /> Pause
                 </Button>
               ) : (
                 <Button
                   variant="default"
-                  size="sm"
+                  size="lg"
                   onClick={togglePlay}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="kidscode-button kidscode-hover-bounce bg-gradient-to-r from-green-500 to-emerald-500 border-none"
                 >
-                  <Play className="h-4 w-4 mr-1" /> Play
+                  <Play className="h-5 w-5 mr-1" /> Play
                 </Button>
               )}
               <Button
                 variant="default"
-                size="sm"
+                size="lg"
                 onClick={stopExecution}
-                className="bg-red-600 hover:bg-red-700"
+                className="kidscode-button kidscode-hover-bounce bg-gradient-to-r from-red-500 to-rose-500 border-none"
               >
-                <Square className="h-4 w-4 mr-1" /> Stop
+                <Square className="h-5 w-5 mr-1" /> Stop
               </Button>
             </>
           )}
         </div>
       </div>
 
-      <div className="flex">
-        <div className="w-1/4 pr-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Project</CardTitle>
+      <div className="flex flex-col lg:flex-row gap-4">
+        <div className="w-full lg:w-1/4">
+          <Card className="kidscode-card border-purple-200">
+            <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-t-xl">
+              <CardTitle className="font-baloo text-2xl text-purple-700">My Project</CardTitle>
               <Input
                 value={projectTitle}
                 onChange={(e) => setProjectTitle(e.target.value)}
                 placeholder="Project Title"
-                className="mt-2"
+                className="mt-2 font-baloo text-lg rounded-xl border-2 border-purple-200"
               />
             </CardHeader>
             <CardContent className="space-y-4">
-              <h3 className="font-medium">My Projects</h3>
+              <h3 className="font-baloo font-bold text-lg text-purple-700">Saved Projects</h3>
               {userProjects.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No projects yet. Create one!</p>
+                <p className="text-sm text-muted-foreground font-baloo">No projects yet. Create one!</p>
               ) : (
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {userProjects.map((project: Project) => (
                     <div
                       key={project.id}
-                      className="p-2 border rounded-md cursor-pointer hover:bg-muted"
+                      className="p-3 border-2 rounded-xl cursor-pointer hover:bg-purple-50 transition-colors font-baloo kidscode-hover-bounce border-purple-200"
                       onClick={() => loadProject(project)}
                     >
-                      <p className="font-medium truncate">{project.title}</p>
+                      <p className="font-medium truncate text-purple-700">{project.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        Last updated: {new Date(project.updatedAt || "").toLocaleDateString()}
+                        Updated: {new Date(project.updatedAt || "").toLocaleDateString()}
                       </p>
                     </div>
                   ))}
@@ -353,10 +355,10 @@ const KidsCode: React.FC = () => {
           </Card>
 
           {editMode === "code" && (
-            <Card className="mt-4">
-              <CardHeader>
-                <CardTitle>Blocks</CardTitle>
-                <CardDescription>Drag blocks to the canvas</CardDescription>
+            <Card className="mt-4 kidscode-card border-blue-200">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-t-xl">
+                <CardTitle className="font-baloo text-2xl text-blue-700">Blocks</CardTitle>
+                <CardDescription className="font-baloo">Drag blocks to build your story!</CardDescription>
               </CardHeader>
               <CardContent>
                 <BlockPalette onBlockSelected={addBlock} />
@@ -365,14 +367,14 @@ const KidsCode: React.FC = () => {
           )}
         </div>
 
-        <div className="w-2/4 px-2">
+        <div className="w-full lg:w-2/4">
           {editMode === "code" ? (
-            <Card className="h-[600px] flex flex-col">
-              <CardHeader>
-                <CardTitle>Code Canvas</CardTitle>
-                <CardDescription>Arrange your blocks here</CardDescription>
+            <Card className="h-[500px] md:h-[600px] flex flex-col kidscode-card border-green-200">
+              <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-xl">
+                <CardTitle className="font-baloo text-2xl text-green-700">Code Canvas</CardTitle>
+                <CardDescription className="font-baloo">Arrange blocks to create your story!</CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow overflow-auto">
+              <CardContent className="flex-grow overflow-auto bg-white/50">
                 <Canvas
                   blocks={blocks}
                   onRemoveBlock={removeBlock}
@@ -381,12 +383,12 @@ const KidsCode: React.FC = () => {
               </CardContent>
             </Card>
           ) : (
-            <Card className="h-[600px] flex flex-col">
-              <CardHeader>
-                <CardTitle>Play Area</CardTitle>
-                <CardDescription>Watch your code run!</CardDescription>
+            <Card className="h-[500px] md:h-[600px] flex flex-col kidscode-card border-amber-200">
+              <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-t-xl">
+                <CardTitle className="font-baloo text-2xl text-amber-700">Play Area</CardTitle>
+                <CardDescription className="font-baloo">Watch your story come to life!</CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-md">
+              <CardContent className="flex-grow overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-xl">
                 <PlayArea
                   blocks={blocks}
                   characters={selectedCharacters}
@@ -398,17 +400,17 @@ const KidsCode: React.FC = () => {
           )}
         </div>
 
-        <div className="w-1/4 pl-4">
+        <div className="w-full lg:w-1/4">
           <Tabs defaultValue="characters">
-            <TabsList className="w-full">
-              <TabsTrigger value="characters" className="w-1/2">Characters</TabsTrigger>
-              <TabsTrigger value="backgrounds" className="w-1/2">Backgrounds</TabsTrigger>
+            <TabsList className="w-full rounded-xl font-baloo">
+              <TabsTrigger value="characters" className="w-1/2 rounded-l-xl text-base">Characters</TabsTrigger>
+              <TabsTrigger value="backgrounds" className="w-1/2 rounded-r-xl text-base">Backgrounds</TabsTrigger>
             </TabsList>
             <TabsContent value="characters">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Characters</CardTitle>
-                  <CardDescription>Add characters to your story</CardDescription>
+              <Card className="kidscode-card border-rose-200">
+                <CardHeader className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-t-xl">
+                  <CardTitle className="font-baloo text-2xl text-rose-700">Characters</CardTitle>
+                  <CardDescription className="font-baloo">Choose who's in your story!</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <CharacterSelection
@@ -421,10 +423,10 @@ const KidsCode: React.FC = () => {
               </Card>
             </TabsContent>
             <TabsContent value="backgrounds">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Backgrounds</CardTitle>
-                  <CardDescription>Choose a background for your story</CardDescription>
+              <Card className="kidscode-card border-cyan-200">
+                <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-t-xl">
+                  <CardTitle className="font-baloo text-2xl text-cyan-700">Backgrounds</CardTitle>
+                  <CardDescription className="font-baloo">Pick a place for your story!</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <BackgroundSelection
@@ -438,30 +440,31 @@ const KidsCode: React.FC = () => {
           </Tabs>
 
           {editMode === "code" && selectedCharacters.length > 0 && (
-            <Card className="mt-4">
-              <CardHeader>
-                <CardTitle>Selected Characters</CardTitle>
+            <Card className="mt-4 kidscode-card border-indigo-200">
+              <CardHeader className="bg-gradient-to-r from-indigo-50 to-violet-50 rounded-t-xl">
+                <CardTitle className="font-baloo text-2xl text-indigo-700">My Characters</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {selectedCharacters.map((character) => (
-                    <div key={character.id} className="flex items-center justify-between">
+                    <div key={character.id} className="flex items-center justify-between bg-white/80 p-2 rounded-lg border border-indigo-100 kidscode-hover-bounce">
                       <div className="flex items-center">
-                        <div className="h-10 w-10 rounded-md overflow-hidden bg-gray-100 mr-2">
+                        <div className="h-12 w-12 rounded-full overflow-hidden bg-indigo-50 mr-3 shadow-sm">
                           <img
                             src={character.imageUrl}
                             alt={character.name}
                             className="h-full w-full object-contain"
                           />
                         </div>
-                        <span>{character.name}</span>
+                        <span className="font-baloo text-indigo-700">{character.name}</span>
                       </div>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => removeCharacter(character.id)}
+                        className="rounded-full hover:bg-red-50 hover:text-red-500"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-5 w-5" />
                       </Button>
                     </div>
                   ))}
