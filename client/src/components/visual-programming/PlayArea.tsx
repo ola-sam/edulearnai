@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { Block, Character, Background } from "@/pages/KidsCode";
+import { useToast } from "@/hooks/use-toast";
 
 interface PlayAreaProps {
   blocks: Block[];
@@ -28,6 +29,7 @@ const PlayArea: React.FC<PlayAreaProps> = ({
   isPlaying
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
   const [characterStates, setCharacterStates] = useState<CharacterState[]>([]);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [currentSpeechBubbles, setCurrentSpeechBubbles] = useState<Record<number, { type: "say" | "think", text: string }>>({});
@@ -60,12 +62,12 @@ const PlayArea: React.FC<PlayAreaProps> = ({
 
   // Execute blocks when isPlaying changes to true
   useEffect(() => {
-    console.log("isPlaying changed:", isPlaying, "isExecuting:", isExecuting);
-    if (isPlaying && !isExecuting) {
+    console.log("isPlaying changed:", isPlaying, "isExecuting:", isExecuting, "blocks:", blocks);
+    if (isPlaying && !isExecuting && blocks.length > 0) {
       console.log("Starting execution of blocks");
       executeBlocks();
     }
-  }, [isPlaying, isExecuting]); // Adding isExecuting to the dependency array
+  }, [isPlaying, isExecuting, blocks]); // Added blocks to the dependency array
 
   // Helper to get the execution starting blocks (event blocks)
   const getStartingBlocks = () => {
@@ -97,11 +99,13 @@ const PlayArea: React.FC<PlayAreaProps> = ({
 
   // Simple interpreter to execute blocks
   const executeBlocks = async () => {
+    console.log("executeBlocks() called");
     setIsExecuting(true);
     
     // Reset character states
-    setCharacterStates(prevStates => 
-      prevStates.map(state => ({
+    setCharacterStates(prevStates => {
+      console.log("Resetting character states:", prevStates);
+      return prevStates.map(state => ({
         ...state,
         x: 0,
         y: 0,
@@ -109,19 +113,31 @@ const PlayArea: React.FC<PlayAreaProps> = ({
         visible: true,
         saying: null,
         thinking: null
-      }))
-    );
+      }));
+    });
     
     setCurrentSpeechBubbles({});
     
     // Get starting blocks
     const startingBlocks = getStartingBlocks();
+    console.log("Starting blocks found:", startingBlocks);
     
     // For each starting block, execute its sequence
-    for (const startBlock of startingBlocks) {
-      await executeBlockSequence(startBlock);
+    if (startingBlocks.length === 0) {
+      console.warn("No starting blocks found. Add a 'When program starts' block.");
+      toast({
+        title: "No Starting Block",
+        description: "Add a 'When program starts' block from the Events tab to begin your program.",
+        variant: "destructive"
+      });
+    } else {
+      for (const startBlock of startingBlocks) {
+        console.log("Executing sequence from block:", startBlock);
+        await executeBlockSequence(startBlock);
+      }
     }
     
+    console.log("Execution completed");
     setIsExecuting(false);
   };
 
