@@ -1,4 +1,5 @@
-const { Client } = require('pg');
+import pg from 'pg';
+const { Client } = pg;
 
 // Function to update sprite images
 async function updateSpriteImages() {
