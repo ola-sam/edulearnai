@@ -68,6 +68,12 @@ const PlayArea: React.FC<PlayAreaProps> = ({
     return { width: 10, height: 10 }; // Default fallback
   };
   
+  // Convert grid position to pixel position
+  const gridToPixels = (gridPos: number) => {
+    const cellSize = getGridCellSize();
+    return gridPos * cellSize.width;
+  };
+  
   // Log character states when they change for debugging
   useEffect(() => {
     console.log("Character states updated:", characterStates);
@@ -197,10 +203,165 @@ const PlayArea: React.FC<PlayAreaProps> = ({
     console.log(`Executing block: ${block.type}`, block.properties);
     
     switch (block.type) {
+      case "motion_move_up":
+        // Move up by a fixed amount of pixels
+        const upSteps = 50; // Move 50 pixels up
+        
+        await new Promise<void>(resolve => {
+          const startTime = Date.now();
+          const duration = 500; // animation duration in ms
+          const startState = {...characterStates.find(state => state.id === characterId)!};
+          
+          // Target is current position plus movement up (negative y)
+          const targetY = startState.y + upSteps;
+          
+          const animateStep = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            setCharacterStates(prevStates => 
+              prevStates.map(state => {
+                if (state.id === characterId) {
+                  return {
+                    ...state,
+                    y: startState.y + (targetY - startState.y) * progress
+                  };
+                }
+                return state;
+              })
+            );
+            
+            if (progress < 1) {
+              requestAnimationFrame(animateStep);
+            } else {
+              resolve();
+            }
+          };
+          
+          requestAnimationFrame(animateStep);
+        });
+        break;
+        
+      case "motion_move_down":
+        // Move down by a fixed amount of pixels
+        const downSteps = 50; // Move 50 pixels down
+        
+        await new Promise<void>(resolve => {
+          const startTime = Date.now();
+          const duration = 500; // animation duration in ms
+          const startState = {...characterStates.find(state => state.id === characterId)!};
+          
+          // Target is current position plus movement down (positive y)
+          const targetY = startState.y - downSteps;
+          
+          const animateStep = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            setCharacterStates(prevStates => 
+              prevStates.map(state => {
+                if (state.id === characterId) {
+                  return {
+                    ...state,
+                    y: startState.y + (targetY - startState.y) * progress
+                  };
+                }
+                return state;
+              })
+            );
+            
+            if (progress < 1) {
+              requestAnimationFrame(animateStep);
+            } else {
+              resolve();
+            }
+          };
+          
+          requestAnimationFrame(animateStep);
+        });
+        break;
+        
+      case "motion_move_left":
+        // Move left by a fixed amount of pixels
+        const leftSteps = 50; // Move 50 pixels left
+        
+        await new Promise<void>(resolve => {
+          const startTime = Date.now();
+          const duration = 500; // animation duration in ms
+          const startState = {...characterStates.find(state => state.id === characterId)!};
+          
+          // Target is current position plus movement left (negative x)
+          const targetX = startState.x - leftSteps;
+          
+          const animateStep = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            setCharacterStates(prevStates => 
+              prevStates.map(state => {
+                if (state.id === characterId) {
+                  return {
+                    ...state,
+                    x: startState.x + (targetX - startState.x) * progress
+                  };
+                }
+                return state;
+              })
+            );
+            
+            if (progress < 1) {
+              requestAnimationFrame(animateStep);
+            } else {
+              resolve();
+            }
+          };
+          
+          requestAnimationFrame(animateStep);
+        });
+        break;
+        
+      case "motion_move_right":
+        // Move right by a fixed amount of pixels
+        const rightSteps = 50; // Move 50 pixels right
+        
+        await new Promise<void>(resolve => {
+          const startTime = Date.now();
+          const duration = 500; // animation duration in ms
+          const startState = {...characterStates.find(state => state.id === characterId)!};
+          
+          // Target is current position plus movement right (positive x)
+          const targetX = startState.x + rightSteps;
+          
+          const animateStep = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            setCharacterStates(prevStates => 
+              prevStates.map(state => {
+                if (state.id === characterId) {
+                  return {
+                    ...state,
+                    x: startState.x + (targetX - startState.x) * progress
+                  };
+                }
+                return state;
+              })
+            );
+            
+            if (progress < 1) {
+              requestAnimationFrame(animateStep);
+            } else {
+              resolve();
+            }
+          };
+          
+          requestAnimationFrame(animateStep);
+        });
+        break;
       case "motion_move_steps":
         // Convert steps to grid-based coordinate system
-        // Use a smaller multiplier to make each step appropriate for grid
-        const stepSize = 1; // 1 step = 1 grid cell
+        // Use a larger multiplier to make each step more visible
+        const stepSize = 20; // 1 step = 20 pixels (much bigger movement)
         const steps = (block.properties?.steps as number || 10) * stepSize;
         
         await new Promise<void>(resolve => {
@@ -215,8 +376,9 @@ const PlayArea: React.FC<PlayAreaProps> = ({
           const targetY = startState.y + steps * Math.sin(radians);
           
           // Constrain movement to stay within reasonable grid boundaries
-          const constrainedX = Math.min(Math.max(targetX, -15), 15);
-          const constrainedY = Math.min(Math.max(targetY, -15), 15);
+          // Expanded the range to -150 to 150 to allow more movement range
+          const constrainedX = Math.min(Math.max(targetX, -150), 150);
+          const constrainedY = Math.min(Math.max(targetY, -150), 150);
           
           const animateStep = () => {
             const elapsed = Date.now() - startTime;
@@ -319,10 +481,11 @@ const PlayArea: React.FC<PlayAreaProps> = ({
         break;
         
       case "motion_goto_xy":
-        // Use grid coordinates (0-29 for both x and y)
-        // Convert from grid coordinates to pixel positions
-        const gridX = Math.min(Math.max(Math.round(block.properties?.x as number || 0), -15), 15);
-        const gridY = Math.min(Math.max(Math.round(block.properties?.y as number || 0), -15), 15);
+        // Use expanded grid coordinates for more range
+        // Convert from grid coordinates to pixel positions with a multiplier
+        const posMultiplier = 10; // Multiply coordinate values for larger movement
+        const gridX = Math.min(Math.max(Math.round(block.properties?.x as number || 0), -15), 15) * posMultiplier;
+        const gridY = Math.min(Math.max(Math.round(block.properties?.y as number || 0), -15), 15) * posMultiplier;
         
         await new Promise<void>(resolve => {
           // Animate the movement smoothly
