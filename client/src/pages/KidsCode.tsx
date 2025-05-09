@@ -188,7 +188,8 @@ const KidsCode: React.FC = () => {
         characters: selectedCharacters,
         background: selectedBackground || undefined
       },
-      isPublic: false
+      isPublic: false,
+      description: ""  // Adding empty description to match schema requirements
     };
 
     if (activeProject?.id) {
@@ -239,10 +240,15 @@ const KidsCode: React.FC = () => {
 
   // Toggle play/pause
   const togglePlay = () => {
-    setIsPlaying(!isPlaying);
-    if (!isPlaying) {
+    // When coming from code mode, make sure to set isPlaying to true first
+    if (editMode === "code") {
+      setIsPlaying(true);
       setEditMode("play");
+      return;
     }
+    
+    // When already in play mode, just toggle the playing state
+    setIsPlaying(!isPlaying);
   };
 
   // Stop execution
