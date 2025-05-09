@@ -25,7 +25,7 @@ const CharacterSelection: React.FC<CharacterSelectionProps> = ({
   return (
     <ScrollArea className="h-[300px] pr-4">
       <div className="grid grid-cols-2 gap-2">
-        {displayCharacters.map((character) => {
+        {displayCharacters.map((character: Character) => {
           const isSelected = selectedCharacters.some(c => c.id === character.id);
           
           return (

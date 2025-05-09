@@ -35,6 +35,7 @@ const PlayArea: React.FC<PlayAreaProps> = ({
   // Initialize character states when characters change
   useEffect(() => {
     if (characters.length > 0) {
+      console.log("Initializing characters:", characters);
       setCharacterStates(
         characters.map((character) => ({
           id: character.id,
@@ -51,6 +52,11 @@ const PlayArea: React.FC<PlayAreaProps> = ({
       );
     }
   }, [characters]);
+  
+  // Log character states when they change for debugging
+  useEffect(() => {
+    console.log("Character states updated:", characterStates);
+  }, [characterStates]);
 
   // Execute blocks when isPlaying changes to true
   useEffect(() => {
@@ -59,7 +65,7 @@ const PlayArea: React.FC<PlayAreaProps> = ({
       console.log("Starting execution of blocks");
       executeBlocks();
     }
-  }, [isPlaying]);
+  }, [isPlaying, isExecuting]); // Adding isExecuting to the dependency array
 
   // Helper to get the execution starting blocks (event blocks)
   const getStartingBlocks = () => {
@@ -404,11 +410,12 @@ const PlayArea: React.FC<PlayAreaProps> = ({
         character.visible && (
           <div
             key={character.id}
-            className="absolute transition-all duration-200"
+            className="absolute"
             style={{
               left: `calc(50% + ${character.x}px)`,
               top: `calc(50% + ${character.y * -1}px)`,
               transform: `translate(-50%, -50%) rotate(${character.rotation}deg) scale(${character.scale})`,
+              transition: "none", // Remove automatic transitions to enable manual animation
             }}
           >
             <img
@@ -419,7 +426,7 @@ const PlayArea: React.FC<PlayAreaProps> = ({
             
             {/* Speech bubble */}
             {currentSpeechBubbles[character.id] && (
-              <div className="absolute top-0 left-1/2 transform -translate-y-full -translate-x-1/2">
+              <div className="absolute top-0 left-1/2 transform -translate-y-full -translate-x-1/2 z-10">
                 {renderSpeechBubble(
                   character.id,
                   currentSpeechBubbles[character.id].type,
