@@ -452,15 +452,15 @@ const TeacherResourcesPage: React.FC = () => {
 
       {/* Add/Edit Resource Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>{editingResource ? "Edit Resource" : "Add New Resource"}</DialogTitle>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4 sticky top-0 bg-background z-10">
+            <DialogTitle className="text-xl">{editingResource ? "Edit Resource" : "Add New Resource"}</DialogTitle>
             <DialogDescription>
               Add a teaching resource to share with your students.
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-4">
               <FormField
                 control={form.control}
                 name="resourceType"
@@ -497,9 +497,13 @@ const TeacherResourcesPage: React.FC = () => {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel className="text-base font-medium">Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter resource title" {...field} />
+                      <Input 
+                        placeholder="Enter resource title" 
+                        {...field}
+                        className="h-10" 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -555,8 +559,13 @@ const TeacherResourcesPage: React.FC = () => {
               
               {form.getValues("resourceType") === "youtube" && previewUrl && videoId && (
                 <div className="pt-4">
-                  <Label>Preview</Label>
-                  <div className="mt-2 aspect-video rounded-md overflow-hidden border">
+                  <div className="bg-muted/20 p-2 rounded-t-md border border-b-0">
+                    <Label className="flex items-center gap-2">
+                      <Video className="h-4 w-4" />
+                      Preview
+                    </Label>
+                  </div>
+                  <div className="rounded-b-md overflow-hidden border">
                     <YouTubeEmbed videoId={videoId} title="Video Preview" />
                   </div>
                 </div>
@@ -594,7 +603,7 @@ const TeacherResourcesPage: React.FC = () => {
                 )}
               />
               
-              <DialogFooter className="pt-4">
+              <DialogFooter className="pt-4 sticky bottom-0 bg-background z-10 border-t mt-6 -mx-6 px-6 pb-3">
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -611,6 +620,7 @@ const TeacherResourcesPage: React.FC = () => {
                 <Button 
                   type="submit" 
                   disabled={createMutation.isPending || updateMutation.isPending}
+                  className="ml-2 px-6"
                 >
                   {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save Resource"}
                 </Button>
