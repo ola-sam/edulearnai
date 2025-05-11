@@ -16,7 +16,8 @@ import {
   insertVisualProjectSchema,
   insertVisualSpriteSchema,
   insertVisualBackgroundSchema,
-  insertSharedVisualElementSchema
+  insertSharedVisualElementSchema,
+  insertTeachingResourceSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { generateTutorResponse, type AITutorRequest } from "./services/openai";
@@ -1443,6 +1444,128 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to create shared visual element" });
     }
   });
+
+  // Teaching Resources routes
+  app.get("/api/teaching-resources", async (req, res) => {
+    const { type } = req.query;
+    
+    let resources;
+    if (type) {
+      resources = await storage.getTeachingResourcesByType(type as string);
+    } else {
+      resources = await storage.getTeachingResources();
+    }
+    
+    res.json(resources);
+  });
+  
+  app.get("/api/teaching-resources/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const resource = await storage.getTeachingResourceById(id);
+    
+    if (!resource) {
+      return res.status(404).json({ message: "Resource not found" });
+    }
+    
+    res.json(resource);
+  });
+  
+  // Teacher-specific teaching resources endpoints
+  app.get("/api/teacher/resources", requireTeacher, async (req, res) => {
+    try {
+      const user = req.user!;
+      const resources = await storage.getTeachingResourcesByTeacher(user.id);
+      res.json(resources);
+    } catch (error) {
+      console.error("Error fetching teacher resources:", error);
+      res.status(500).json({ message: "Failed to fetch teaching resources" });
+    }
+  });
+  
+  app.post("/api/teacher/resources", requireTeacher, async (req, res) => {
+    try {
+      const user = req.user!;
+      
+      // Parse and validate the resource data
+      const resourceData = insertTeachingResourceSchema.parse({
+        ...req.body,
+        teacherId: user.id // Ensure the teacher ID is set from the authenticated user
+      });
+      
+      // Process YouTube URL if it's a YouTube resource
+      if (resourceData.resourceType === "youtube") {
+        // Extract video ID and generate thumbnail URL if not provided
+        const videoId = extractYouTubeVideoId(resourceData.resourceUrl);
+        if (videoId && !resourceData.thumbnailUrl) {
+          resourceData.thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        }
+      }
+      
+      const resource = await storage.createTeachingResource(resourceData);
+      res.status(201).json(resource);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid resource data", errors: error.errors });
+      }
+      console.error("Error creating teaching resource:", error);
+      res.status(500).json({ message: "Failed to create teaching resource" });
+    }
+  });
+  
+  app.put("/api/teacher/resources/:id", requireTeacher, async (req, res) => {
+    try {
+      const user = req.user!;
+      const id = parseInt(req.params.id);
+      
+      // Check if resource exists and belongs to this teacher
+      const existingResource = await storage.getTeachingResourceById(id);
+      if (!existingResource) {
+        return res.status(404).json({ message: "Resource not found" });
+      }
+      
+      if (existingResource.teacherId !== user.id) {
+        return res.status(403).json({ message: "You can only update your own resources" });
+      }
+      
+      // Update the resource
+      const updatedResource = await storage.updateTeachingResource(id, req.body);
+      res.json(updatedResource);
+    } catch (error) {
+      console.error("Error updating teaching resource:", error);
+      res.status(500).json({ message: "Failed to update teaching resource" });
+    }
+  });
+  
+  app.delete("/api/teacher/resources/:id", requireTeacher, async (req, res) => {
+    try {
+      const user = req.user!;
+      const id = parseInt(req.params.id);
+      
+      // Check if resource exists and belongs to this teacher
+      const existingResource = await storage.getTeachingResourceById(id);
+      if (!existingResource) {
+        return res.status(404).json({ message: "Resource not found" });
+      }
+      
+      if (existingResource.teacherId !== user.id) {
+        return res.status(403).json({ message: "You can only delete your own resources" });
+      }
+      
+      // Delete the resource
+      await storage.deleteTeachingResource(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting teaching resource:", error);
+      res.status(500).json({ message: "Failed to delete teaching resource" });
+    }
+  });
+  
+  // Helper function to extract YouTube video ID from various URL formats
+  function extractYouTubeVideoId(url: string): string | null {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  }
 
   // Setup the HTTP server
   const httpServer = createServer(app);
