@@ -578,7 +578,7 @@ const TeacherResourcesPage: React.FC = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Available to all classes</SelectItem>
+                        <SelectItem value="null">Available to all classes</SelectItem>
                         {classes.map((cls) => (
                           <SelectItem key={cls.id} value={cls.id.toString()}>
                             {cls.name}
