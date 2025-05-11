@@ -466,7 +466,7 @@ const TeacherResourcesPage: React.FC = () => {
                 name="resourceType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Resource Type</FormLabel>
+                    <FormLabel className="text-base font-medium">Resource Type</FormLabel>
                     <Select
                       onValueChange={(value) => {
                         field.onChange(value);
@@ -477,14 +477,23 @@ const TeacherResourcesPage: React.FC = () => {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-10">
                           <SelectValue placeholder="Select resource type" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="youtube">YouTube Video</SelectItem>
-                        <SelectItem value="link">Web Link</SelectItem>
-                        <SelectItem value="document">Document</SelectItem>
+                        <SelectItem value="youtube" className="flex items-center gap-2">
+                          <Youtube className="h-4 w-4" />
+                          <span>YouTube Video</span>
+                        </SelectItem>
+                        <SelectItem value="link" className="flex items-center gap-2">
+                          <LinkIcon className="h-4 w-4" />
+                          <span>Web Link</span>
+                        </SelectItem>
+                        <SelectItem value="document" className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          <span>Document</span>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -515,14 +524,18 @@ const TeacherResourcesPage: React.FC = () => {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel className="text-base font-medium">Description (Optional)</FormLabel>
                     <FormControl>
                       <Textarea 
                         placeholder="Enter resource description" 
                         {...field} 
                         value={field.value || ""} 
+                        className="min-h-[100px] resize-y"
                       />
                     </FormControl>
+                    <FormDescription>
+                      Provide details about this resource to help students understand its purpose
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -533,21 +546,31 @@ const TeacherResourcesPage: React.FC = () => {
                 name="resourceUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
+                    <FormLabel className="text-base font-medium">
                       {form.getValues("resourceType") === "youtube" 
                         ? "YouTube URL" 
                         : "Resource URL"}
                     </FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder={form.getValues("resourceType") === "youtube" 
-                          ? "https://www.youtube.com/watch?v=..." 
-                          : "https://..."}
-                        {...field}
-                        onChange={(e) => handleResourceUrlChange(e.target.value)}
-                      />
-                    </FormControl>
-                    <FormDescription>
+                    <div className="flex gap-2 items-start">
+                      <div className="flex-shrink-0 w-8 h-10 flex items-center justify-center rounded-l-md border bg-muted">
+                        {form.getValues("resourceType") === "youtube" ? (
+                          <Youtube className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <LinkIcon className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                      <FormControl className="flex-grow">
+                        <Input 
+                          placeholder={form.getValues("resourceType") === "youtube" 
+                            ? "https://www.youtube.com/watch?v=..." 
+                            : "https://..."}
+                          {...field}
+                          onChange={(e) => handleResourceUrlChange(e.target.value)}
+                          className="h-10 rounded-l-none pl-3"
+                        />
+                      </FormControl>
+                    </div>
+                    <FormDescription className="mt-1.5">
                       {form.getValues("resourceType") === "youtube" 
                         ? "Paste the full YouTube URL from the address bar or share button" 
                         : "Enter the URL where this resource is located"}
@@ -576,26 +599,35 @@ const TeacherResourcesPage: React.FC = () => {
                 name="classId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Assign to Class (Optional)</FormLabel>
+                    <FormLabel className="text-base font-medium">Assign to Class (Optional)</FormLabel>
                     <Select
                       onValueChange={(value) => field.onChange(value === "null" ? null : parseInt(value))}
                       value={field.value?.toString() || "null"}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-10">
                           <SelectValue placeholder="Available to all classes" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="null">Available to all classes</SelectItem>
-                        {classes.map((cls) => (
-                          <SelectItem key={cls.id} value={cls.id.toString()}>
-                            {cls.name}
+                        <SelectItem value="null" className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span>Available to all classes</span>
+                        </SelectItem>
+                        <Separator className="my-2" />
+                        {classes.length > 0 ? classes.map((cls) => (
+                          <SelectItem key={cls.id} value={cls.id.toString()} className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <span>{cls.name}</span>
                           </SelectItem>
-                        ))}
+                        )) : (
+                          <div className="px-2 py-2 text-sm text-muted-foreground">
+                            No classes available
+                          </div>
+                        )}
                       </SelectContent>
                     </Select>
-                    <FormDescription>
+                    <FormDescription className="mt-1.5">
                       If selected, this resource will only be visible to the specified class
                     </FormDescription>
                     <FormMessage />
