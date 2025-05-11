@@ -569,8 +569,8 @@ const TeacherResourcesPage: React.FC = () => {
                   <FormItem>
                     <FormLabel>Assign to Class (Optional)</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
-                      value={field.value?.toString() || ""}
+                      onValueChange={(value) => field.onChange(value === "null" ? null : parseInt(value))}
+                      value={field.value?.toString() || "null"}
                     >
                       <FormControl>
                         <SelectTrigger>
