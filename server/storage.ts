@@ -24,6 +24,7 @@ import {
   visualSprites,
   visualBackgrounds,
   sharedVisualElements,
+  teachingResources,
   type User,
   type InsertUser,
   type Subject,
@@ -73,7 +74,9 @@ import {
   type VisualBackground,
   type InsertVisualBackground,
   type SharedVisualElement,
-  type InsertSharedVisualElement
+  type InsertSharedVisualElement,
+  type TeachingResource,
+  type InsertTeachingResource
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -237,6 +240,16 @@ export interface IStorage {
   getSharedVisualElementsByCategory(category: string): Promise<SharedVisualElement[]>;
   getSharedVisualElementsByType(type: string): Promise<SharedVisualElement[]>;
   createSharedVisualElement(element: InsertSharedVisualElement): Promise<SharedVisualElement>;
+  
+  // Teaching Resource operations
+  getTeachingResources(): Promise<TeachingResource[]>;
+  getTeachingResourceById(id: number): Promise<TeachingResource | undefined>;
+  getTeachingResourcesByTeacher(teacherId: number): Promise<TeachingResource[]>;
+  getTeachingResourcesByClass(classId: number): Promise<TeachingResource[]>;
+  getTeachingResourcesByType(resourceType: string): Promise<TeachingResource[]>;
+  createTeachingResource(resource: InsertTeachingResource): Promise<TeachingResource>;
+  updateTeachingResource(id: number, resource: Partial<InsertTeachingResource>): Promise<TeachingResource | undefined>;
+  deleteTeachingResource(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -1512,6 +1525,43 @@ export class DatabaseStorage implements IStorage {
   
   // This is a simple cosine similarity search
   // In a production environment, you would use a vector database like pgvector
+  // Teaching Resource operations
+  async getTeachingResources(): Promise<TeachingResource[]> {
+    return await db.select().from(teachingResources);
+  }
+  
+  async getTeachingResourceById(id: number): Promise<TeachingResource | undefined> {
+    const results = await db.select().from(teachingResources).where(eq(teachingResources.id, id)).limit(1);
+    return results[0];
+  }
+  
+  async getTeachingResourcesByTeacher(teacherId: number): Promise<TeachingResource[]> {
+    return await db.select().from(teachingResources).where(eq(teachingResources.teacherId, teacherId));
+  }
+  
+  async getTeachingResourcesByClass(classId: number): Promise<TeachingResource[]> {
+    return await db.select().from(teachingResources).where(eq(teachingResources.classId, classId));
+  }
+  
+  async getTeachingResourcesByType(resourceType: string): Promise<TeachingResource[]> {
+    return await db.select().from(teachingResources).where(eq(teachingResources.resourceType, resourceType));
+  }
+  
+  async createTeachingResource(resource: InsertTeachingResource): Promise<TeachingResource> {
+    const result = await db.insert(teachingResources).values(resource).returning();
+    return result[0];
+  }
+  
+  async updateTeachingResource(id: number, resource: Partial<InsertTeachingResource>): Promise<TeachingResource | undefined> {
+    const result = await db.update(teachingResources).set(resource).where(eq(teachingResources.id, id)).returning();
+    return result[0];
+  }
+  
+  async deleteTeachingResource(id: number): Promise<boolean> {
+    const result = await db.delete(teachingResources).where(eq(teachingResources.id, id)).returning();
+    return result.length > 0;
+  }
+  
   async searchSimilarDocuments(embedding: number[], limit: number = 5): Promise<CurriculumDocument[]> {
     // Since we don't have native vector support, we'll fetch all documents and compute similarity in JS
     // (This is not efficient for large datasets - in production use pgvector or a dedicated vector DB)
