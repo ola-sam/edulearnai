@@ -872,3 +872,44 @@ export const visualBackgroundsRelations = relations(visualBackgrounds, ({ one })
     references: [users.id]
   })
 }));
+
+// Teaching Resources (videos, links, etc.)
+export const teachingResources = pgTable("teaching_resources", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  resourceType: text("resource_type").notNull(), // "youtube", "link", "document", etc.
+  resourceUrl: text("resource_url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  teacherId: integer("teacher_id").notNull(),
+  classId: integer("class_id"), // Optional, if null = available to all classes
+  tags: jsonb("tags"), // For categorization and filtering
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertTeachingResourceSchema = createInsertSchema(teachingResources).pick({
+  title: true,
+  description: true,
+  resourceType: true,
+  resourceUrl: true,
+  thumbnailUrl: true,
+  teacherId: true,
+  classId: true,
+  tags: true,
+});
+
+export type InsertTeachingResource = z.infer<typeof insertTeachingResourceSchema>;
+export type TeachingResource = typeof teachingResources.$inferSelect;
+
+// Teaching Resource relations
+export const teachingResourcesRelations = relations(teachingResources, ({ one }) => ({
+  teacher: one(users, {
+    fields: [teachingResources.teacherId],
+    references: [users.id]
+  }),
+  class: one(classes, {
+    fields: [teachingResources.classId],
+    references: [classes.id]
+  })
+}));
