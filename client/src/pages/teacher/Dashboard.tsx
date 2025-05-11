@@ -23,7 +23,8 @@ import {
   Calendar,
   MessageSquare,
   FileText,
-  UserCheck
+  UserCheck,
+  Video
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
@@ -400,6 +401,14 @@ const TeacherDashboard = () => {
                   <MessageSquare className="h-8 w-8 text-primary mb-2" />
                   <h3 className="font-medium">Announcements</h3>
                   <p className="text-sm text-muted-foreground">Class announcements</p>
+                </div>
+              </Link>
+
+              <Link href="/teacher/resources">
+                <div className="border rounded-lg p-4 text-center hover:bg-muted flex flex-col items-center justify-center h-full">
+                  <Video className="h-8 w-8 text-primary mb-2" />
+                  <h3 className="font-medium">Resources</h3>
+                  <p className="text-sm text-muted-foreground">Manage teaching resources</p>
                 </div>
               </Link>
             </div>
