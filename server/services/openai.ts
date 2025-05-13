@@ -1,10 +1,58 @@
 import OpenAI from "openai";
 import { ragService } from "./rag";
+import { CircuitBreaker } from "../utils/circuit-breaker";
+import { AppError } from "../middleware/error-handler";
 
-// Initialize the OpenAI client
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY 
+// Check if OpenAI API key is available
+const hasOpenAIKey = !!process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here';
+
+// Initialize the OpenAI client only if API key is available
+let openai: OpenAI | null = null;
+if (hasOpenAIKey) {
+  openai = new OpenAI({ 
+    apiKey: process.env.OPENAI_API_KEY,
+    timeout: 30000, // 30 seconds timeout
+    maxRetries: 3 // Retry failed requests up to 3 times
+  });
+} else {
+  console.warn('OpenAI API key not provided in openai.ts. AI tutor features will be disabled in local development.');
+}
+
+// Create circuit breaker for OpenAI API calls
+const openaiCircuitBreaker = new CircuitBreaker('openai', {
+  failureThreshold: 3,     // Open after 3 consecutive failures
+  resetTimeout: 60000,     // Try again after 1 minute
+  maxHalfOpenCalls: 2      // Allow 2 test calls in half-open state
 });
+
+// Wrapper for OpenAI API calls with circuit breaker
+async function callOpenAIWithCircuitBreaker<T>(apiCall: () => Promise<T>): Promise<T> {
+  if (!hasOpenAIKey || !openai) {
+    throw new AppError('OpenAI API key not configured', 503);
+  }
+  
+  try {
+    return await openaiCircuitBreaker.execute(apiCall);
+  } catch (error: any) {
+    // If circuit is open, provide a fallback response
+    if (error.message && error.message.includes('Circuit breaker')) {
+      console.warn('OpenAI service unavailable, using fallback');
+      throw new AppError('AI service temporarily unavailable', 503);
+    }
+    
+    // Handle specific OpenAI API errors
+    if (error.status === 429) {
+      throw new AppError('AI service rate limit exceeded, please try again later', 429);
+    }
+    
+    if (error.status >= 500) {
+      throw new AppError('AI service error, please try again later', 503);
+    }
+    
+    // Rethrow other errors
+    throw error;
+  }
+}
 
 // Define the interface for AI requests
 export interface AITutorRequest {
@@ -32,6 +80,15 @@ export interface AITutorResponse {
 export async function generateTutorResponse(request: AITutorRequest): Promise<AITutorResponse> {
   const { userId, message, context } = request;
   
+  // If OpenAI client is not available, return a mock response for local development
+  if (!openai) {
+    console.warn('Using mock tutor response for local development');
+    return {
+      content: "I'm a mock AI tutor response for local development. To enable the full AI features, please add your OpenAI API key to the .env file.",
+      sources: []
+    };
+  }
+
   try {
     // Retrieve relevant curriculum documents based on the student's query and context
     const relevantDocuments = await ragService.findRelevantDocuments(
@@ -59,24 +116,48 @@ export async function generateTutorResponse(request: AITutorRequest): Promise<AI
     // Create a system message with context about the student
     const systemMessage = createSystemPrompt(context, documentsText);
     
-    // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemMessage },
-        { role: "user", content: message }
-      ],
-      temperature: 0.7,
-      max_tokens: 600
+    // Use circuit breaker pattern for OpenAI API call
+    const response = await callOpenAIWithCircuitBreaker(async () => {
+      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      return await openai!.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemMessage },
+          { role: "user", content: message }
+        ],
+        temperature: 0.7,
+        max_tokens: 600
+      });
     });
     
     return {
       content: response.choices[0].message.content || "I'm sorry, I couldn't generate a response.",
       sources: sources.length > 0 ? sources : undefined
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating tutor response:", error);
-    throw new Error("Failed to generate AI tutor response");
+    
+    // If there's an error and we're in local development without an API key, return a mock response
+    if (!hasOpenAIKey) {
+      console.warn('Falling back to mock tutor response after error');
+      return {
+        content: "I'm a mock AI tutor response for local development. An error occurred, but we're providing this fallback response. To enable the full AI features, please add your OpenAI API key to the .env file.",
+        sources: []
+      };
+    }
+    
+    // Provide a user-friendly error message based on the error type
+    if (error instanceof AppError) {
+      // If it's already an AppError, just rethrow it
+      throw error;
+    } else if (error.status === 429) {
+      throw new AppError('AI service is currently busy. Please try again in a few minutes.', 429);
+    } else if (error.status >= 500) {
+      throw new AppError('AI service is currently experiencing issues. Please try again later.', 503);
+    } else {
+      // Generic error message for other types of errors
+      throw new AppError('Failed to generate AI tutor response. Please try again.', 500);
+    }
   }
 }
 

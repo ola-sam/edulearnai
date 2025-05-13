@@ -2,8 +2,16 @@ import { storage } from "../storage";
 import { InsertCurriculumDocument, type CurriculumDocument } from "@shared/schema";
 import OpenAI from "openai";
 
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Check if OpenAI API key is available
+const hasOpenAIKey = !!process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here';
+
+// Create OpenAI client only if API key is available
+let openai: OpenAI | null = null;
+if (hasOpenAIKey) {
+  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+} else {
+  console.warn('OpenAI API key not provided. AI features will be disabled in local development.');
+}
 
 interface RagSimilarityResult {
   document: CurriculumDocument;
@@ -49,6 +57,13 @@ class RagService {
    */
   async generateEmbedding(text: string): Promise<number[]> {
     try {
+      // If OpenAI client is not available, return a mock embedding for local development
+      if (!openai) {
+        console.warn('Using mock embedding for local development');
+        // Return a mock embedding with 1536 dimensions (same as Ada-002)
+        return Array(1536).fill(0).map(() => Math.random());
+      }
+      
       const response = await openai.embeddings.create({
         model: "text-embedding-ada-002",
         input: text,
@@ -57,6 +72,11 @@ class RagService {
       return response.data[0].embedding;
     } catch (error) {
       console.error("Error generating embedding:", error);
+      // If there's an error, return a mock embedding for local development
+      if (!hasOpenAIKey) {
+        console.warn('Falling back to mock embedding after error');
+        return Array(1536).fill(0).map(() => Math.random());
+      }
       throw error;
     }
   }

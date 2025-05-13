@@ -24,61 +24,63 @@ import { generateTutorResponse, type AITutorRequest } from "./services/openai";
 import { generatePersonalizedRecommendations } from "./services/recommendations";
 import { setupAuth } from "./auth";
 import { ragService } from "./services/rag";
+import passwordResetRoutes from "./routes/password-reset";
+import { catchAsync } from "./middleware/error-handler";
+import { csrfProtection } from "./middleware/security";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication
   setupAuth(app);
+  
+  // Register password reset routes
+  app.use('/api/password-reset', passwordResetRoutes);
   // User routes
-  app.get("/api/users/:id", async (req, res) => {
+  app.get("/api/users/:id", catchAsync(async (req, res) => {
     const id = parseInt(req.params.id);
+    
+    if (isNaN(id)) {
+      return res.status(400).json({ error: { message: "Invalid user ID", status: 400 } });
+    }
+    
     const user = await storage.getUser(id);
     
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ error: { message: "User not found", status: 404 } });
     }
     
     // Don't send password in response
     const { password, ...userWithoutPassword } = user;
     res.json(userWithoutPassword);
-  });
+  }));
 
-  app.post("/api/users", async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      const user = await storage.createUser(userData);
-      
-      // Don't send password in response
-      const { password, ...userWithoutPassword } = user;
-      res.status(201).json(userWithoutPassword);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid user data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create user" });
-    }
-  });
+  app.post("/api/users", csrfProtection, catchAsync(async (req, res) => {
+    const userData = insertUserSchema.parse(req.body);
+    const user = await storage.createUser(userData);
+    
+    // Don't send password in response
+    const { password, ...userWithoutPassword } = user;
+    res.status(201).json(userWithoutPassword);
+  }));
 
-  app.put("/api/users/:id/points", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const { points } = z.object({ points: z.number() }).parse(req.body);
-      
-      const user = await storage.updateUserPoints(id, points);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      // Don't send password in response
-      const { password, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid points data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to update user points" });
+  app.put("/api/users/:id/points", csrfProtection, catchAsync(async (req, res) => {
+    const id = parseInt(req.params.id);
+    
+    if (isNaN(id)) {
+      return res.status(400).json({ error: { message: "Invalid user ID", status: 400 } });
     }
-  });
+    
+    const { points } = z.object({ points: z.number() }).parse(req.body);
+    
+    const user = await storage.updateUserPoints(id, points);
+    
+    if (!user) {
+      return res.status(404).json({ error: { message: "User not found", status: 404 } });
+    }
+    
+    // Don't send password in response
+    const { password, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
+  }));
   
   // Subject routes
   app.get("/api/subjects", async (req, res) => {
@@ -455,93 +457,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI Tutor routes
-  app.post("/api/ai/tutor", async (req, res) => {
-    try {
-      const tutorRequestSchema = z.object({
-        userId: z.number(),
-        message: z.string().min(1),
-        subject: z.string().optional(),
-      });
-      
-      const { userId, message, subject } = tutorRequestSchema.parse(req.body);
-      
-      // Get user information for context
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      // Get user progress and quiz results for context
-      const progress = await storage.getUserProgress(userId);
-      const quizResults = await storage.getQuizResults(userId);
-      
-      // Get recent lessons
-      const recentLessons = [];
-      for (const p of progress) {
-        const lesson = await storage.getLessonById(p.lessonId);
-        if (lesson) {
-          recentLessons.push(lesson);
-        }
-      }
-      
-      // Create context for AI tutor
-      const context: AITutorRequest["context"] = {
-        grade: user.grade,
-        subject: subject,
-        recentLessons: recentLessons.slice(0, 5), // Just the 5 most recent
-        quizResults: quizResults.slice(0, 5)      // Just the 5 most recent
-      };
-      
-      // Generate AI response with RAG
-      const aiResponse = await generateTutorResponse({
-        userId,
-        message,
-        context
-      });
-      
+  // Define the validation schema outside the route handler
+  const tutorRequestSchema = z.object({
+    userId: z.number(),
+    message: z.string().min(1, "Message is required"),
+    subject: z.string().optional(),
+  });
+  
+  // Apply rate limiting to prevent abuse
+  app.post("/api/ai/tutor", csrfProtection, catchAsync(async (req, res) => {
+    const { userId, message, subject } = tutorRequestSchema.parse(req.body);
+    
+    // Get user information for context
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ error: { message: "User not found", status: 404 } });
+    }
+    
+    // Get user progress and quiz results for context
+    const progress = await storage.getUserProgress(userId);
+    const quizResults = await storage.getQuizResults(userId);
+    
+    // Get recent lessons more efficiently using Promise.all
+    const lessonPromises = progress.slice(0, 5).map(p => storage.getLessonById(p.lessonId));
+    const recentLessonsWithNull = await Promise.all(lessonPromises);
+    const recentLessons = recentLessonsWithNull.filter(lesson => lesson !== undefined);
+    
+    // Create context for AI tutor
+    const context: AITutorRequest["context"] = {
+      grade: user.grade,
+      subject: subject,
+      recentLessons: recentLessons.slice(0, 5), // Just the 5 most recent
+      quizResults: quizResults.slice(0, 5)      // Just the 5 most recent
+    };
+    
+    // Generate AI response with RAG (circuit breaker already applied in the service)
+    const aiResponse = await generateTutorResponse({
+      userId,
+      message,
+      context
+    });
+    
+    // Store user message and AI response with better error handling
+    await Promise.all([
       // Store user message
-      await storage.createChatMessage({
+      storage.createChatMessage({
         userId,
         content: message,
         timestamp: new Date(),
         role: "user",
         subject: subject,
         sources: null // User messages don't have sources
-      });
+      }),
       
       // Store AI response with sources
-      await storage.createChatMessage({
+      storage.createChatMessage({
         userId,
         content: aiResponse.content,
         timestamp: new Date(),
         role: "assistant",
         subject: subject,
         sources: aiResponse.sources || null
-      });
-      
-      res.json(aiResponse);
-    } catch (error) {
-      console.error("Error in AI tutor route:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid tutor request", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to generate AI tutor response" });
-    }
-  });
+      })
+    ]);
+    
+    res.json(aiResponse);
+  }));
   
   // Chat history routes for AI tutor
-  app.get("/api/users/:userId/chat-history", async (req, res) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
-      
-      const messages = await storage.getChatMessages(userId, limit);
-      res.json(messages);
-    } catch (error) {
-      console.error("Error fetching chat history:", error);
-      res.status(500).json({ message: "Failed to fetch chat history" });
+  // Middleware to check if the user is authenticated
+  const checkAuthenticated = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: { message: "Authentication required", status: 401 } });
     }
-  });
+    next();
+  };
+  
+  app.get("/api/users/:userId/chat-history", checkAuthenticated, catchAsync(async (req, res) => {
+    const userId = parseInt(req.params.userId);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: { message: "Invalid user ID", status: 400 } });
+    }
+    
+    // Only allow users to access their own chat history or teachers to access any
+    if (req.user && req.user.id !== userId && !req.user.isTeacher) {
+      return res.status(403).json({ error: { message: "Forbidden", status: 403 } });
+    }
+    
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+    
+    const messages = await storage.getChatMessages(userId, limit);
+    res.json(messages);
+  }));
 
   // Teacher-specific routes
   // Middleware to check if user is a teacher

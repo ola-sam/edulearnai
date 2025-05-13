@@ -9,6 +9,7 @@ import { securityHeaders } from "./middleware/security";
 import { generalRateLimiter } from "./middleware/rate-limiter";
 import { requestTimeout, connectionClosedHandler } from "./middleware/timeout";
 import helmet from "helmet";
+import path from "path";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -60,18 +61,17 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
+    const statusCode = res.statusCode;
+    
+    const logLine = `${req.method} ${req.originalUrl} ${statusCode} in ${duration}ms${
+      capturedJsonResponse
+        ? " :: " +
+          JSON.stringify(capturedJsonResponse).substring(0, 50) +
+          (JSON.stringify(capturedJsonResponse).length > 50 ? "…" : "")
+        : ""
+    }`;
 
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
+    log(logLine);
   });
 
   next();
@@ -87,6 +87,19 @@ app.use((req, res, next) => {
     }
     
     const server = await registerRoutes(app);
+
+    // IMPORTANT CHANGE: First serve static files directly for development
+    if (app.get("env") === "development") {
+      // Serve the built client files directly in development mode as well
+      const distPublicPath = path.resolve(process.cwd(), "dist/public");
+      app.use(express.static(distPublicPath));
+      console.log(`Serving static files from: ${distPublicPath}`);
+      
+      // Now set up Vite for development HMR
+      await setupVite(app, server);
+    } else {
+      serveStatic(app);
+    }
 
     // Enhanced error handling middleware with more details
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -126,15 +139,6 @@ app.use((req, res, next) => {
     // Global error handler - must be after all other middleware and routes
     app.use(errorHandler);
 
-    // importantly only setup vite in development and after
-    // setting up all the other routes so the catch-all route
-    // doesn't interfere with the other routes
-    if (app.get("env") === "development") {
-      await setupVite(app, server);
-    } else {
-      serveStatic(app);
-    }
-
     // ALWAYS serve the app on port 5000
     // this serves both the API and the client.
     // It is the only port that is not firewalled.
@@ -149,16 +153,11 @@ app.use((req, res, next) => {
       log(`serving on ${host}:${port}`);
       
       // Create admin user for local development
-      if (process.env.NODE_ENV === 'development') {
-        try {
-          await createAdminUser('admin', 'SecurePass123', 'Admin', 'User');
-        } catch (error) {
-          console.error('Failed to create admin user:', error);
-        }
-      }
+      await createAdminUser();
     });
+
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error('Error starting server:', error);
     process.exit(1);
   }
 })();

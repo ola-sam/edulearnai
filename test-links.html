@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduLearnAI - Testing Links</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; max-width: 800px; margin: 0 auto; }
+        h1 { color: #2563eb; }
+        .card { background: #f9fafb; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { color: #1e40af; margin-top: 0; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 10px; }
+        a { color: #3b82f6; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .instructions { background: #eff6ff; padding: 15px; border-left: 4px solid #3b82f6; margin-bottom: 20px; }
+        code { background: #f1f5f9; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>EduLearnAI - Testing Links</h1>
+    
+    <div class="instructions">
+        <p>This page provides direct links to test various features of the EduLearnAI application, particularly the password reset functionality.</p>
+    </div>
+    
+    <div class="card">
+        <h2>Password Reset Testing</h2>
+        <p>Test the password reset functionality using our custom test page:</p>
+        <ul>
+            <li><a href="http://localhost:8000/password-reset-test.html" target="_blank">Password Reset Test Page</a></li>
+        </ul>
+        
+        <p>Or test the API endpoints directly:</p>
+        <ul>
+            <li>
+                <strong>Request Password Reset:</strong>
+                <code>curl -X POST -H "Content-Type: application/json" -d '{"email": "test@example.com"}' http://localhost:5000/api/password-reset/request</code>
+            </li>
+            <li>
+                <strong>Reset Password:</strong>
+                <code>curl -X POST -H "Content-Type: application/json" -d '{"token": "YOUR_TOKEN", "password": "NewPassword123", "confirmPassword": "NewPassword123"}' http://localhost:5000/api/password-reset/reset</code>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="card">
+        <h2>API Endpoints</h2>
+        <ul>
+            <li><a href="http://localhost:5000/api/users/1" target="_blank">Get User (ID: 1)</a></li>
+            <li><a href="http://localhost:5000/api/password-reset" target="_blank">Password Reset Routes (GET not supported)</a></li>
+        </ul>
+        <p>Note: Most API endpoints require POST/PUT/DELETE methods and cannot be directly accessed via browser links.</p>
+    </div>
+    
+    <div class="card">
+        <h2>Admin Credentials</h2>
+        <p>Use these credentials for testing admin functionality:</p>
+        <ul>
+            <li><strong>Username:</strong> admin</li>
+            <li><strong>Password:</strong> SecurePass123</li>
+        </ul>
+    </div>
+    
+    <div class="card">
+        <h2>Test User</h2>
+        <p>Use this test user for password reset testing:</p>
+        <ul>
+            <li><strong>Email:</strong> test@example.com</li>
+            <li><strong>Password:</strong> NewPassword123 (after reset)</li>
+        </ul>
+    </div>
+</body>
+</html>
